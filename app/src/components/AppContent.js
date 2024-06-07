@@ -8,11 +8,18 @@ import NavigationTabs from './NavigationTabs';
 import MainPage from './MainPage';
 import Pipelines from './Pipelines';
 import Parameters from './Parameters';
+import {
+  AppToaster,
+  // showInfo,
+  // showError,
+  // showWarning
+} from '../services/toastServices';
 
 
 const AppContent = () => {
   return (
     <>
+      <AppToaster />
       <div className='navigation-tabs'>
         <NavigationTabs />
       </div>

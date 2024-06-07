@@ -2,12 +2,19 @@
  * Import libraries
  */
 
-import React, { useState, useEffect  } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef
+} from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { useHistory } from 'react-router-dom';
 // import { workflowServices } from '../services/workflowServices';
+import {
+  showError,
+} from '../services/toastServices';
 
 /*
  * Constants
@@ -32,58 +39,71 @@ const importAll = (r) => {
 const pipelineFiles = importAll(require.context('../../public/pipelines', false, /\.json$/));
 
 // Lunch Button that redirect to "Parameters"
-const LunchButton = ({ data, launchPipeline }) => {
+const LunchButton = ({ data }) => {
   const history = useHistory();
   const [navigate, setNavigate] = useState(false);
   const [workflowId, setWorkflowId] = useState({});
+  const navigateRef = useRef(navigate); // added a useRef hook to keep track of the navigate state to prevent repeated navigation attempts.
 
   useEffect(() => {
-    if (navigate) {
+    navigateRef.current = navigate;
+  }, [navigate]);
+
+  useEffect(() => {
+    if (navigateRef.current) {
       history.push({
         pathname: '/parameters',
         state: { schema: data, workflowId: workflowId }
       });
     }
-  }, [navigate, history, data, workflowId]);
-
-  return (
-    <Button
-      label='Launch'
-      onClick={() => launchPipeline(data, setNavigate, setWorkflowId)}
-      raised
-    />
-  );
-};
+  }, [workflowId, history, data]);
 
 
-// Function that transform the pipeline data
-const Pipelines = () => {
-
-  // Launch the pipeline creating a workflow
-  const launchPipeline = async (data, setNavigate, setWorkflowId) => {
+  // Launch the pipeline creating a workflow instance
+  const launchPipeline = async (data) => {
     // convert the data pipeline to POST
-    let convertDataToPOST = {};
+    let dataPOST = {};
     try {
-      convertDataToPOST = {
+      dataPOST = {
         pipeline: data.url,
         revision: data.revision,
         profiles: 'guess',
       };
     } catch (error) {
-      console.error('Error: converting data pipeline to POST request in the creation of a workflow: ', error);
+      showError('', 'Processing the data for the POST request during workflow creation');
+      console.error('Processing the data for the POST request during workflow creation: ', error);
     }
     // make the POST request to create a workflow
     try {
-      if ( Object.keys(convertDataToPOST).length !== 0 && convertDataToPOST.constructor === Object) {
-        // const result = await workflowServices.create(convertDataToPOST);
-        const result = {_id: '6661e3bc5c0d51b8ab08cdee'};
-        setWorkflowId(result);
-        setNavigate(true); // Set state to trigger navigation   
+      if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
+        // const result = await workflowServices.create(dataPOST);
+        const result = {_id: '66633eea16729f51f38e8e65'};
+        if (result && result._id) {
+          setWorkflowId(result._id);
+          setNavigate(true); // Set state to trigger navigation
+        }
+        else {  
+          showError('', 'The workflow instance was not created correctly');
+          console.error('The workflow id was not provided.');
+        }
       }
     } catch (error) {
-      console.error('Error: making a POST request in the creation of a workflow: ', error);
+      showError('', 'Processing the data for the POST request during workflow creation');
+      console.error('Error: making a POST request during workflow creation: ', error);
     }
   };
+
+  return (
+    <Button
+      label='Launch'
+      onClick={() => launchPipeline(data)}
+      raised
+    />
+  );
+};
+
+// Function that transform the pipeline data
+const Pipelines = () => {
 
   // Define header
   const columns = [
@@ -101,7 +121,7 @@ const Pipelines = () => {
     title: data.title,
     description: data.description,
     url: <UrlLink url={data.url} />,
-    action: <LunchButton data={data} launchPipeline={launchPipeline} />
+    action: <LunchButton data={data} />
   });
 
   const [datatable] = useState(pipelineFiles.map(convertDataToTable));

@@ -6,59 +6,99 @@ import React, {
   useState,
   useEffect,
   useMemo,
-  // useRef
+  useRef
 } from 'react';
 import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import {
-  // FileListDatasetUpload,
-  FolderDatasetUpload,
   FileDatasetUpload,
+  FolderDatasetUpload,
   StringDataset
 } from './formDatasets';
-// import {
-//   // showInfo,
-//   showError,
-//   // showWarning
-// } from '../services/toastServices';
+import {
+  // showInfo,
+  showError,
+  // showWarning
+} from '../services/toastServices';
+// import { datasetServices } from '../services/datasetServices';
+
 
 
 
 /*
- * Functions
+ * Components
  */
 
 
 /* Create the Parameters panels */
 const Parameters = (props) => {
 
-  // // Check if workflow ID exist
-  // if ( props.location.state.workflowId ) {
-  //   showError('Error Message', 'This is an error message');
-  // }
+
+  // Launch the pipeline creating a workflow instance
+  // const [datasetId, setDatasetId] = useState({});
+  const launchDataset = async (data) => {
+
+    // convert the data pipeline to POST
+    let dataPOST = {};
+    try {
+      dataPOST = {
+        experiment: data
+      };
+    } catch (error) {
+      showError('', 'Processing the data for the POST request during dataset creation');
+      console.error('Processing the data for the POST request during dataset creation: ', error);
+    }
+    // make the POST request to create a workflow
+    try {
+      if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
+        // const result = await datasetServices.create(dataPOST);
+        const result = {_id: '66633eea16729f51f38e8e66'};
+        if (result && result._id) {
+          // setDatasetId(result);
+        }
+        else {  
+          showError('', 'The dataset instance was not created correctly');
+          console.error('The dataset id was not provided.');
+        }
+      }
+    } catch (error) {
+      showError('', 'Processing the data for the POST request during dataset creation');
+      console.error('Error: making a POST request during dataset creation: ', error);
+    }
+  };
+
+  // Create a Dataset instance provided that the workflow instance has been correctly initiated (indicating possession of the workflow ID)
+  const createDatasetRef = useRef(false); // create flag variable to be sure the action runs only once on mount
+  useEffect(() => {
+    if (props.location.state.workflowId && !createDatasetRef.current) {
+      launchDataset(props.location.state.workflowId)
+      createDatasetRef.current = true;
+    }
+  }, [props.location.state.workflowId]);
+
 
   // Pipeline schema
   if ( props.location.state.schema ) {
     const schemaData = props.location.state.schema;
     return (
-      <div className='parameters'>
-        <div className="grid">
-            <div className="col-3">
-              <SideMenu definitions={schemaData.definitions} />
-            </div>
-            <div className="col-9">
-              <div className="field">
-                <label htmlFor="username">Describe briefly your workflow:</label>
-                <InputText id="username" className="w-full" aria-describedby="username-help" />
-                {/* <small id="username-help">Enter your username to reset your password.</small> */}
+      <>
+        <div className='parameters'>
+          <div className="grid">
+              <div className="col-3">
+                <SideMenu definitions={schemaData.definitions} />
               </div>
-              <Properties definitions={schemaData.definitions} />
-              {/* <FileListUpload /> */}
-            </div>
+              <div className="col-9">
+                <div className="field">
+                  <label htmlFor="workflow-description">Describe briefly your workflow:</label>
+                  <InputText id="workflow-description" className="w-full" />
+                </div>
+                <Properties definitions={schemaData.definitions} />
+              </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
   // The component has not received the pipeline schema
@@ -159,26 +199,6 @@ const Properties = ({ definitions }) => {
     </>
   );
 };
-
-
-// /* Component for rendering file list */
-// const FileListUpload = () => {
-
-//   // create the panel header
-//   const header = (
-//       <div className='parameter-panel-header'>
-//         <i className='pi pi-file-export' style={{fontSize:'1.25rem',marginRight:'0.5em'}}></i>Upload the file list
-//       </div>      
-//     );
-
-//   return (
-//     <div className="field">
-//       <Panel header={header}>
-//           <FileListDatasetUpload />
-//       </Panel>
-//     </div>
-//   );
-// };
 
 export default Parameters;
 
