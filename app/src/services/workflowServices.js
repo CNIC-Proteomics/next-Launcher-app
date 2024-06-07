@@ -9,7 +9,7 @@
 
 import {
   BACKEND_URL, 
-  MAX_FILE_SIZE
+  // MAX_FILE_SIZE
 } from '../constants';
 
 

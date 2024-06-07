@@ -1,7 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation  } from 'react-router-dom';
-// import { TabView, TabPanel } from 'primereact/tabview';
-// import { TabMenu } from 'primereact/tabmenu';
+/*
+ * Import libraries
+ */
+
+import React, {
+  useState,
+  useEffect
+} from 'react';
+import {
+  Link,
+  useLocation
+} from 'react-router-dom';
+
+
+/*
+ * Components
+ */
 
 const NavigationTabs = () => {
   const location = useLocation();

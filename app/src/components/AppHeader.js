@@ -1,16 +1,18 @@
+/*
+ * Import libraries
+ */
+
 import React from 'react';
-// import { Navbar, Nav, Container } from 'react-bootstrap';
-import { Menubar } from 'primereact/menubar';
-import { BrowserRouter as Router } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { Menubar } from 'primereact/menubar';
+
+
+/*
+ * Components
+ */
 
 const AppHeader = () => {
-  const items = [
-    {
-      label: 'next-Launcher',
-      url: '/'
-    }
-  ];
+
   const start = (
     <div className="flex align-items-center gap-2">
       <img alt="logo" src="https://primefaces.org/cdn/primereact/images/logo.png" height="40" className="mr-2"></img>
@@ -21,19 +23,19 @@ const AppHeader = () => {
   );
 
   const end = (
-    <Router>
-      <ul className='p-menubar-root-list'>
-        <li className='p-menuitem-content'>
-          <Link to="/pipelines" className="p-menuitem">Pipelines</Link>
-        </li>
-        <li className='p-menuitem-content'>
-          <Link to="/workflows" className="p-menuitem">Workflows</Link>
-        </li>
-        <li className='p-menuitem-content'>
-          <Link to="/datasets" className="p-menuitem">Datasets</Link>
-        </li>
-      </ul>
-    </Router>
+  <>
+    <ul className='p-menubar-root-list'>
+      <li className='p-menuitem-content'>
+        <Link to="/pipelines" className="p-menuitem">Pipelines</Link>
+      </li>
+      <li className='p-menuitem-content'>
+        <Link to="/workflows" className="p-menuitem">Workflows</Link>
+      </li>
+      <li className='p-menuitem-content'>
+        <Link to="/datasets" className="p-menuitem">Datasets</Link>
+      </li>
+    </ul>
+  </>
   );
 
   return (

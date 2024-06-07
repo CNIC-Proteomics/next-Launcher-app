@@ -176,15 +176,15 @@
   font-size: var(--nl-font-size);
 }
 
-// don't show the first element (File List Upload menu content)
-// ensure no submenu styles are applied to the last menu item
-.parameters-sidemenu .p-panelmenu-panel:last-child .p-panelmenu-content {
-  display: none !important;
-}
-// Prevent click interactions if necessary
-.parameters-sidemenu .p-panelmenu-panel:last-child {
-  pointer-events: none;
-}
+// // don't show the first element (File List Upload menu content)
+// // ensure no submenu styles are applied to the last menu item
+// .parameters-sidemenu .p-panelmenu-panel:last-child .p-panelmenu-content {
+//   display: none !important;
+// }
+// // Prevent click interactions if necessary
+// .parameters-sidemenu .p-panelmenu-panel:last-child {
+//   pointer-events: none;
+// }
 
 
 /* Panels */
@@ -202,4 +202,30 @@
 .parameters .p-inputgroup input {
   border-top-right-radius: 6px;
   border-bottom-right-radius: 6px;
+}
+
+/* FileUpload */
+
+// buttons
+.parameters .p-fileupload .p-fileupload-buttonbar {
+  padding: 0.5rem;
+  gap: 0.2rem;
+}
+.parameters .p-button.p-button-icon-only.p-button-rounded {
+  border-radius: 50%;
+  height: 2rem;
+  width: 2rem;
+}
+// tooltip
+.parameters .custom-upload-btn-tooltip .p-tooltip-text {
+  font-size: 10px;
+}
+// fileupload panel
+.parameters .p-fileupload .p-fileupload-content {
+  padding: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.parameters .p-fileupload .p-fileupload-row > div {
+  padding: 0.5rem;
 }

@@ -2,18 +2,27 @@
  * Import libraries
  */
 
-import React, { useState, useEffect, useRef  } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  // useRef
+} from 'react';
 import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
 import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
 import {
-  FileListDatasetUpload,
+  // FileListDatasetUpload,
   FolderDatasetUpload,
   FileDatasetUpload,
   StringDataset
 } from './formDatasets';
-import { Button } from 'primereact/button';
-import { showInfo, showError, showWarning } from '../services/toastServices';
+// import {
+//   // showInfo,
+//   showError,
+//   // showWarning
+// } from '../services/toastServices';
 
 
 
@@ -25,10 +34,10 @@ import { showInfo, showError, showWarning } from '../services/toastServices';
 /* Create the Parameters panels */
 const Parameters = (props) => {
 
-  // Check if workflow ID exist
-  if ( props.location.state.workflowId ) {
-    showError('Error Message', 'This is an error message');
-  }
+  // // Check if workflow ID exist
+  // if ( props.location.state.workflowId ) {
+  //   showError('Error Message', 'This is an error message');
+  // }
 
   // Pipeline schema
   if ( props.location.state.schema ) {
@@ -66,35 +75,38 @@ const Parameters = (props) => {
 /* SideMenu created by "Definitions" data from Pipeline */
 const SideMenu = ({ definitions }) => {
 
-  // init the menu with the "FileList Upload"
-  const [menuItems, setMenuItems] = useState([]);
+  // Transform the data pipeline for the table
+  const convertDefinitionsToMenu = (key, definition) => ({
+    key: key,
+    label: definition.title,
+    // icon: definition.fa_icon,
+    expanded: true,
+    items: Object.entries(definition.properties).flatMap(([k, property]) => ({ key: k, label: property.title, expanded: true }))
+  });
 
-  // const fileListMenu = {
-  //   label: 'Upload the File List',
-  //   items: [],
-  //   expanded: true
-  // };
-  const fileListMenu = {};
+  const [menuItems] = useState( Object.entries(definitions).filter(([key, definition]) => key !== 'output_options').flatMap(([key, definition]) => convertDefinitionsToMenu(key, definition)) );
 
+  // get the keys that is going to be expanded
+  const getExpandedKeys = useMemo(() => (items) => {
+    const keys = {};
+    items.forEach((item, index) => {
+      let k = item.key;
+      if (item.expanded) { keys[k] = true; }
+      if (item.items) { Object.assign(keys, getExpandedKeys(item.items, k)); }
+    });
+    return keys;
+  }, []);
+  
+  const [expandedKeys, setExpandedKeys] = useState({});
   useEffect(() => {
-    // function to parse Definitions data and generate menu items
-    const parseDefinitionsToMenuItems = (data) => {
-      return Object.keys(data).filter((i) => i !== 'output_options').map((i) => ({
-        label: data[i].title,
-        // icon: data[i].fa_icon,
-        items: data[i].properties ? parseDefinitionsToMenuItems(data[i].properties) : null,
-        expanded: true
-      }));
-    };
-
-    // set the menu items based on the Definitions data
-    setMenuItems([...parseDefinitionsToMenuItems(definitions), fileListMenu]);
-  }, [definitions]);
+      const keys = getExpandedKeys(menuItems);
+      setExpandedKeys(keys);
+  }, [getExpandedKeys, menuItems]);
 
   return (
     <div className='parameters-sidemenu'>
       <div className='flex flex-column gap-4'>
-        <PanelMenu model={menuItems} multiple />
+        <PanelMenu model={menuItems} expandedKeys={expandedKeys} multiple />
         <Button label='Lauch' />
       </div>
     </div>
@@ -136,13 +148,11 @@ const Properties = ({ definitions }) => {
     { Object.keys(definitions).filter((i) => i !== 'output_options').map((i) => (
       <div key={i} className="field">
         <Panel header={header(definitions[i])}>
-          <p className="m-0">
-            { Object.keys(definitions[i].properties).map((j) => (
-              <div key={j} className="field mb-5">
-                <Inputs properties={definitions[i].properties[j]} />
-              </div>
-            ))}
-          </p>
+          { Object.keys(definitions[i].properties).map((j) => (
+            <div key={j} className="field mb-5">
+              <Inputs properties={definitions[i].properties[j]} />
+            </div>
+          ))}
         </Panel>
       </div>
     ))}

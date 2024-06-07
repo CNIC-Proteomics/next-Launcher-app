@@ -1,5 +1,14 @@
+/*
+ * Import libraries
+ */
+
 import { createRef } from 'react';
-import { Toast } from 'primereact/toast';
+
+
+/*
+ * Components
+ */
+
 
 // Create a ref for the Toast component
 const toastRef = createRef();
@@ -14,10 +23,6 @@ const showInfo = (summary, detail) => showToast('info', summary, detail);
 const showError = (summary, detail) => showToast('error', summary, detail);
 const showWarning = (summary, detail) => showToast('warn', summary, detail);
 
-// const AppToaster = () => {
-//     return (<Toast ref={toastRef} />);
-// };
 
 // Export the ref and the functions
 export { toastRef, showInfo, showError, showWarning };
-// export default AppToaster;

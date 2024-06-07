@@ -1,10 +1,17 @@
+/*
+ * Import libraries
+ */
+
 import React, { useState, useEffect  } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
-import { Link, useHistory } from 'react-router-dom';
-import { workflowServices } from '../services/workflowServices';
+import { useHistory } from 'react-router-dom';
+// import { workflowServices } from '../services/workflowServices';
 
+/*
+ * Constants
+ */
 
 
 // Function to import JSON files dynamically
@@ -15,6 +22,11 @@ const importAll = (r) => {
   });
   return pipelines;
 }
+
+/*
+ * Components
+ */
+
 
 // Import all JSON files from the "pipelines" folder
 const pipelineFiles = importAll(require.context('../../public/pipelines', false, /\.json$/));
@@ -27,7 +39,6 @@ const LunchButton = ({ data, launchPipeline }) => {
 
   useEffect(() => {
     if (navigate) {
-      console.log("PASA");
       history.push({
         pathname: '/parameters',
         state: { schema: data, workflowId: workflowId }
@@ -43,6 +54,7 @@ const LunchButton = ({ data, launchPipeline }) => {
     />
   );
 };
+
 
 // Function that transform the pipeline data
 const Pipelines = () => {
@@ -63,9 +75,8 @@ const Pipelines = () => {
     // make the POST request to create a workflow
     try {
       if ( Object.keys(convertDataToPOST).length !== 0 && convertDataToPOST.constructor === Object) {
-        console.log(convertDataToPOST);
-        const result = await workflowServices.create(convertDataToPOST);
-        console.log('Success:', result);
+        // const result = await workflowServices.create(convertDataToPOST);
+        const result = {_id: '6661e3bc5c0d51b8ab08cdee'};
         setWorkflowId(result);
         setNavigate(true); // Set state to trigger navigation   
       }
@@ -84,7 +95,7 @@ const Pipelines = () => {
   ];
 
   // Transform the data pipeline for the table
-  const convertDataToTable = data => ({
+  const convertDataToTable = (data) => ({
     id: data.$id,
     status: <StatusIcon status={data.status} />,
     title: data.title,
