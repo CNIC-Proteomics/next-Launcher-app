@@ -27,7 +27,7 @@ const AppContent = () => {
         <Switch>
           <Route path="/" exact component={MainPage} />
           <Route path="/pipelines" component={Pipelines} />
-          <Route path="/parameters" component={Parameters} />
+          <Route path="/parameters/:datasetId" component={Parameters} />
         </Switch>
       </div>
     </>

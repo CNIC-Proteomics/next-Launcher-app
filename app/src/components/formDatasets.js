@@ -161,8 +161,7 @@ export const FolderDatasetUpload = ({properties}) => {
 /* Create section to upload a single file */
 export const FileDatasetUpload = ({ properties }) => {
     const fileInputRef = useRef(null);
-    const [selectedFile, setSelectedFile] = useState(null);
-    // const [selectedFiles, setSelectedFiles] = useState([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploadProgress, setUploadProgress] = useState(0);
 
     const handleFileSelect = () => {
@@ -170,26 +169,54 @@ export const FileDatasetUpload = ({ properties }) => {
     };
 
     const onFileChange = (e) => {
-        const file = e.target.files[0];
-        setSelectedFile(file);
+        setSelectedFiles(e.target.files);
         setUploadProgress(0);  // Reset progress when a new file is selected
     };
-    // const onFileChange = (e) => {
-    //     setSelectedFiles(e.target.files);
-    //     setUploadProgress(0);  // Reset progress when a new file is selected
-    // };
 
     const onUpload = async () => {
         showInfo('','Uploading...');
         try {            
-            await datasetServices.upload('66633eea16729f51f38e8e66', 'file-path', 'exp_table', selectedFile);
             // await fileUpload.uploadFiles(selectedFiles);
+            await datasetServices.upload('66633eea16729f51f38e8e66', 'file-path', 'exp_table', selectedFiles, (progress) => {
+                setUploadProgress(progress);
+            });
             showInfo('','File uploaded successfully');
         } catch (error) {
             showError('','File upload failed');
             console.error('Error: File upload failed: ', error);
         }
     };
+
+    return (
+        <div className="flex flex-column gap-2">
+            <label>{properties.description}</label>
+            <div className="single-file-dataset p-inputgroup flex">
+                <Button label="Select File" icon="pi pi-file-import" className='border-round-left-md' onClick={handleFileSelect} />
+                <InputText value={selectedFiles.length > 0 ? selectedFiles[0].name : ''} placeholder="No file selected" readOnly />
+                <Button label="Upload" icon="pi pi-upload" className='border-round-right-md p-button-success' onClick={onUpload} outlined />
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={onFileChange}
+                />
+            </div>
+            { uploadProgress > 0 && (<ProgressBar value={uploadProgress} showValue={false} />) }
+            <small id={`${properties.title}-help`}>{properties.help_text}</small>
+        </div>
+    );
+};
+
+
+    // const [selectedFile, setSelectedFile] = useState(null);
+
+    // const onFileChange = (e) => {
+    //     const file = e.target.files[0];
+    //     setSelectedFile(file);
+    //     setUploadProgress(0);  // Reset progress when a new file is selected
+    // };
+
+
 
     // const onUpload = () => {
     //     if (!selectedFile) {
@@ -223,22 +250,3 @@ export const FileDatasetUpload = ({ properties }) => {
     //     xhr.send(formData);
     // };
 
-    return (
-        <div className="flex flex-column gap-2">
-            <label>{properties.description}</label>
-            <div className="single-file-dataset p-inputgroup flex">
-                <Button label="Select File" icon="pi pi-file-import" className='border-round-left-md' onClick={handleFileSelect} />
-                <InputText value={selectedFile ? selectedFile.name : ''} placeholder="No file selected" readOnly />
-                <Button label="Upload" icon="pi pi-upload" className='border-round-right-md p-button-success' onClick={onUpload} outlined />
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    onChange={onFileChange}
-                />
-            </div>
-            { uploadProgress > 0 && (<ProgressBar value={uploadProgress} style={{height:'8px', fontSize: '7px'}} />) }
-            <small id={`${properties.title}-help`}>{properties.help_text}</small>
-        </div>
-    );
-};

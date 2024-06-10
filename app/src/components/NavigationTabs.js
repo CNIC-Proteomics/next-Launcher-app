@@ -28,17 +28,17 @@ const NavigationTabs = () => {
     label: 'Pipelines',
     icon: 'pi pi-sitemap',
     to: '/pipelines'
-  },{
-    label: 'Parameters',
-    icon: 'pi pi-list',
-    to: '/parameters'
+  // },{
+  //   label: 'Parameters',
+  //   icon: 'pi pi-list',
+  //   to: '/parameters'
   }];
 
   useEffect(() => {
       const pathToIndex = {
           '/': 0,
           '/pipelines': 1,
-          '/parameters': 2
+          // '/parameters': 2
       };
       setActiveIndex(pathToIndex[location.pathname]);
   }, [location]);

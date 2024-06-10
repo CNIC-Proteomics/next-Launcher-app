@@ -6,8 +6,9 @@ import React, {
   useState,
   useEffect,
   useMemo,
-  useRef
+  // useRef
 } from 'react';
+import { useParams } from 'react-router-dom';
 import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
 import { InputText } from 'primereact/inputtext';
@@ -17,11 +18,11 @@ import {
   FolderDatasetUpload,
   StringDataset
 } from './formDatasets';
-import {
-  // showInfo,
-  showError,
-  // showWarning
-} from '../services/toastServices';
+// import {
+//   // showInfo,
+//   showError,
+//   // showWarning
+// } from '../services/toastServices';
 // import { datasetServices } from '../services/datasetServices';
 
 
@@ -35,49 +36,8 @@ import {
 /* Create the Parameters panels */
 const Parameters = (props) => {
 
-
-  // Launch the pipeline creating a workflow instance
-  // const [datasetId, setDatasetId] = useState({});
-  const launchDataset = async (data) => {
-
-    // convert the data pipeline to POST
-    let dataPOST = {};
-    try {
-      dataPOST = {
-        experiment: data
-      };
-    } catch (error) {
-      showError('', 'Processing the data for the POST request during dataset creation');
-      console.error('Processing the data for the POST request during dataset creation: ', error);
-    }
-    // make the POST request to create a workflow
-    try {
-      if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
-        // const result = await datasetServices.create(dataPOST);
-        const result = {_id: '66633eea16729f51f38e8e66'};
-        if (result && result._id) {
-          // setDatasetId(result);
-        }
-        else {  
-          showError('', 'The dataset instance was not created correctly');
-          console.error('The dataset id was not provided.');
-        }
-      }
-    } catch (error) {
-      showError('', 'Processing the data for the POST request during dataset creation');
-      console.error('Error: making a POST request during dataset creation: ', error);
-    }
-  };
-
-  // Create a Dataset instance provided that the workflow instance has been correctly initiated (indicating possession of the workflow ID)
-  const createDatasetRef = useRef(false); // create flag variable to be sure the action runs only once on mount
-  useEffect(() => {
-    if (props.location.state.workflowId && !createDatasetRef.current) {
-      launchDataset(props.location.state.workflowId)
-      createDatasetRef.current = true;
-    }
-  }, [props.location.state.workflowId]);
-
+  // Capture datasetId from URL
+  const { datasetId } = useParams();
 
   // Pipeline schema
   if ( props.location.state.schema ) {
@@ -94,7 +54,7 @@ const Parameters = (props) => {
                   <label htmlFor="workflow-description">Describe briefly your workflow:</label>
                   <InputText id="workflow-description" className="w-full" />
                 </div>
-                <Properties definitions={schemaData.definitions} />
+                <Properties definitions={schemaData.definitions} datasetId={datasetId} />
               </div>
           </div>
         </div>
