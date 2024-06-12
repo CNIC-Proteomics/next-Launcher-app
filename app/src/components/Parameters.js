@@ -18,11 +18,11 @@ import {
   FolderDatasetUpload,
   StringDataset
 } from './formDatasets';
-// import {
-//   // showInfo,
-//   showError,
-//   // showWarning
-// } from '../services/toastServices';
+import {
+  showInfo,
+  showWarning
+} from '../services/toastServices';
+import { workflowServices } from '../services/workflowServices';
 // import { datasetServices } from '../services/datasetServices';
 
 
@@ -37,7 +37,113 @@ import {
 const Parameters = (props) => {
 
   // Capture datasetId from URL
-  const { datasetId } = useParams();
+  const { workflowId, datasetId } = useParams();
+  const [ workflowDescription, setWorkflowDescription ] = useState('');
+  const [ postData ] = useState({});
+
+  // const handlePostData = (newPostData) => {
+  //   setPostData(newPostData);
+  // };
+
+
+  // 1. Lauch Workflow
+  const launchWorkflow = async () => {
+
+    let postData_2 = {
+      "ReFrag results": {
+          "name": "--re_files",
+          "type": "directory-path",
+          "value": "6667227e22cc1ec8df1e6c15/re_files/*"
+      },
+      "Experimental table": {
+          "name": "--exp_table",
+          "type": "file-path",
+          "value": "6667227e22cc1ec8df1e6c15/exp_table.txt"
+      },
+      "Protein database": {
+          "name": "--database",
+          "type": "file-path",
+          "value": "6667227e22cc1ec8df1e6c15/database.fasta"
+      },
+      "Decoy prefix": {
+          "name": "--decoy_prefix",
+          "type": "string",
+          "value": "DECOY_"
+      },
+      "Parameter file": {
+          "name": "--params_file",
+          "type": "file-path",
+          "value": "6667227e22cc1ec8df1e6c15/params.ini"
+      },
+      "Sitelist file": {
+          "name": "--sitelist_file",
+          "type": "file-path",
+          "value": "6667227e22cc1ec8df1e6c15/sitelist.txt"
+      },
+      "Groupmaker file": {
+          "name": "--groupmaker_file",
+          "type": "file-path",
+          "value": "6667227e22cc1ec8df1e6c15/groupmaker.txt"
+      }
+  };
+  console.log(postData_2);
+
+
+
+    // bash workflow/launch.sh http://localhost:8080 66447ecf309b2cffc914ac88 \
+    // '{"inputs": [
+    //     {"name": "--re_files", "type": "directory-path", "value": "6667227e22cc1ec8df1e6c15/re_files/*"},
+    //     {"name": "--exp_table", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/exp_table.txt"},
+    //     {"name": "--database", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/database.fasta"},
+    //     {"name": "--decoy_prefix", "type": "string", "value": "DECOY_"},
+    //     {"name": "--params_file", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/params.ini"},
+    //     {"name": "--sitelist_file", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/sitelist.txt"},
+    //     {"name": "--groupmaker_file", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/groupmaker.txt"}
+    // ]
+    // }'
+
+    // bash workflow/edit.sh http://localhost:8080 66447ecf309b2cffc914ac88 \
+    // '{"pipeline": "https://github.com/CNIC-Proteomics/nf-PTM-compass",
+    // "revision": "main",
+    // "profiles": "guess",
+    // "description": "test 2 workflow"
+    // }'
+
+    // Check that all parameters are filled in and that the files are uploaded
+    let allValid = true;
+    // Validate the description
+    if ( workflowDescription === '' ) {
+      allValid = false;
+      showWarning('',`Please fill in the 'Workflow description' field.`);
+    }
+    // Validate all input fields: the object has to be full (not empty)
+    for (let key in postData_2) {
+      if ( Object.keys(postData_2[key]).length === 0 ) {
+        allValid = false;
+        showWarning('',`Please fill in the '${key}' field.`);
+      }
+    }
+    if (allValid) {
+      // Prepare the POST data
+      let postData_desc = {
+        'description': workflowDescription
+      };
+      postData_2 = { 'inputs': Object.values(postData_2) };
+      console.log(postData_2);
+
+      // Launch process here
+      // Edit the workflow with the description
+      const result_edit = await workflowServices.edit(workflowId, postData_desc);
+      if (result_edit) {
+        // const result_launch = await workflowServices.launch(workflowId, postData_2);
+        const result_launch = { "status": 200, "message": "Workflow \"6667227e22cc1ec8df1e6c14\" was launched" }
+        showInfo('', result_launch.message);
+      }
+
+    }
+
+  };
+
 
   // Pipeline schema
   if ( props.location.state.schema ) {
@@ -47,14 +153,19 @@ const Parameters = (props) => {
         <div className='parameters'>
           <div className="grid">
               <div className="col-3">
-                <SideMenu definitions={schemaData.definitions} />
+                <SideMenu definitions={schemaData.definitions} launchWorkflow={launchWorkflow} />
+                {/* <SideMenu definitions={schemaData.definitions} /> */}
               </div>
               <div className="col-9">
                 <div className="field">
                   <label htmlFor="workflow-description">Describe briefly your workflow:</label>
-                  <InputText id="workflow-description" className="w-full" />
+                  <InputText id="workflow-description" className="w-full" value={workflowDescription} onChange={(e) => setWorkflowDescription(e.target.value)}/>
                 </div>
-                <Properties definitions={schemaData.definitions} datasetId={datasetId} />
+                <Properties
+                  definitions={schemaData.definitions}
+                  datasetId={datasetId}
+                  postData={postData}
+                  />
               </div>
           </div>
         </div>
@@ -73,7 +184,7 @@ const Parameters = (props) => {
 
 
 /* SideMenu created by "Definitions" data from Pipeline */
-const SideMenu = ({ definitions }) => {
+const SideMenu = ({ definitions, launchWorkflow }) => {
 
   // Transform the data pipeline for the table
   const convertDefinitionsToMenu = (key, definition) => ({
@@ -107,7 +218,7 @@ const SideMenu = ({ definitions }) => {
     <div className='parameters-sidemenu'>
       <div className='flex flex-column gap-4'>
         <PanelMenu model={menuItems} expandedKeys={expandedKeys} multiple />
-        <Button label='Lauch' />
+        <Button label='Lauch' onClick={launchWorkflow} />
       </div>
     </div>
   );
@@ -115,7 +226,7 @@ const SideMenu = ({ definitions }) => {
 
 
 /* Create the "Properties" of parameters */
-const Properties = ({ definitions }) => {
+const Properties = ({ definitions, datasetId, postData }) => {
 
   // create the panel header
   const header = (definition) => {
@@ -127,17 +238,36 @@ const Properties = ({ definitions }) => {
   };
 
   // component for rendering input properties
-  const Inputs = ({ properties }) => {
+  const Inputs = ({ propertyKey, property }) => {
+
     return (
     <>
-      {(properties.format === 'path' || properties.format === 'directory-path') && (
-        <FolderDatasetUpload properties={properties} />
+      {(property.format === 'path' || property.format === 'directory-path') && (
+        <FolderDatasetUpload
+          datasetId={datasetId}
+          property={property}
+          propertyFormat={property.format}
+          propertyKey={propertyKey}
+          postData={postData}
+      />
       )}
-      {properties.format === 'file-path' && (
-        <FileDatasetUpload properties={properties} />
+      {property.format === 'file-path' && (
+        <FileDatasetUpload
+          datasetId={datasetId}
+          property={property}
+          propertyFormat={property.format}
+          propertyKey={propertyKey}
+          postData={postData}
+        />
       )}
-      {properties.format === 'string' && (
-        <StringDataset properties={properties} />
+      {property.format === 'string' && (
+        <StringDataset
+          datasetId={datasetId}
+          property={property}
+          propertyFormat={property.format}
+          propertyKey={propertyKey}
+          postData={postData}
+      />
       )}
     </>
     );
@@ -150,7 +280,7 @@ const Properties = ({ definitions }) => {
         <Panel header={header(definitions[i])}>
           { Object.keys(definitions[i].properties).map((j) => (
             <div key={j} className="field mb-5">
-              <Inputs properties={definitions[i].properties[j]} />
+              <Inputs propertyKey={j} property={definitions[i].properties[j]} />
             </div>
           ))}
         </Panel>

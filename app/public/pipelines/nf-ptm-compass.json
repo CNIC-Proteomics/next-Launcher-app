@@ -28,7 +28,7 @@
                 "help_text": "Under construction...",
                 "fa_icon": "pi pi-folder",
                 "type": "string",
-                "format": "path",
+                "format": "directory-path",
                 "default": "",
                 "mimetype": "text/plain"
             },
@@ -75,6 +75,24 @@
             "params_file": {
                 "title": "Parameter file",
                 "description": "File with the parameter for the programs in INI format",
+                "help_text": "Under construction...",
+                "fa_icon": "pi pi-file-import",
+                "type": "string",
+                "format": "file-path",
+                "mimetype": "text/plain"
+            },
+            "sitelist_file": {
+                "title": "Sitelist file",
+                "description": "File with the Sitelist info",
+                "help_text": "Under construction...",
+                "fa_icon": "pi pi-file-import",
+                "type": "string",
+                "format": "file-path",
+                "mimetype": "text/plain"
+            },
+            "groupmaker_file": {
+                "title": "Groupmaker file",
+                "description": "File with the group maker",
                 "help_text": "Under construction...",
                 "fa_icon": "pi pi-file-import",
                 "type": "string",

@@ -193,10 +193,11 @@
 // .parameters-sidemenu .p-panelmenu-panel:last-child .p-panelmenu-content {
 //   display: none !important;
 // }
-// // Prevent click interactions if necessary
+// Prevent click interactions if necessary
 // .parameters-sidemenu .p-panelmenu-panel:last-child {
-//   pointer-events: none;
-// }
+.parameters-sidemenu .p-panelmenu-panel {
+    pointer-events: none;
+}
 
 
 /* Panels */
@@ -230,7 +231,8 @@
 // fileupload panel
 .parameters .multiple-file-dataset .p-fileupload .p-fileupload-content {
   padding: 0.5rem;
-  max-height: 200px;
+  max-height: 180px;
+  height: 180px;
   overflow-y: auto;
 }
 .parameters .multiple-file-dataset .p-fileupload .p-fileupload-row > div {

@@ -71,7 +71,7 @@ const LunchButton = ({ data }) => {
     try {
       if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
         // const result = await workflowServices.create(dataPOST);
-        const result = {_id: '6667206ea275c687bc0a6ced'};
+        const result = {_id: '6667227e22cc1ec8df1e6c14'};
         if (result && result._id) {
           setWorkflowId(result._id);
           return result._id;
@@ -89,8 +89,6 @@ const LunchButton = ({ data }) => {
 
   // 3. Launch the pipeline creating a dataset instance
   const createDataset = async (workflowId) => {
-
-    console.log(workflowId);
     // convert the data pipeline to POST
     let dataPOST = {};
     try {
@@ -104,9 +102,8 @@ const LunchButton = ({ data }) => {
     // make the POST request to create a workflow
     try {
       if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
-        console.log(dataPOST);
         // const result = await datasetServices.create(dataPOST);
-        const result = {_id: '6667206ea275c687bc0a6cee'};
+        const result = {_id: '6667227e22cc1ec8df1e6c15'};
         if (result && result._id) {
           setDatasetId(result._id);
           setNavigate(true); // set state to trigger navigation
@@ -127,7 +124,8 @@ const LunchButton = ({ data }) => {
   useEffect(() => {
     if (navigate && datasetId) {
       history.push({
-        pathname: `/parameters/${datasetId}`,
+        // pathname: `/parameters/${datasetId}`,
+        pathname: `/workflows/${workflowId}/datasets/${datasetId}`,
         state: { schema: data, workflowId: workflowId }
       });
     }

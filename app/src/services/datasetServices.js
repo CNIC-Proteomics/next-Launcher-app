@@ -19,14 +19,6 @@ import {
 
 export class datasetServices {
 
-  // constructor() {
-  //   // super();
-  //   // Bind methods
-  //   this.create = this.create.bind(this);
-  //   this.up = this.up.bind(this);
-  //   this.upload = this.upload.bind(this);
-  // }
-
   // create a dataset instance
   static async create(data) {
     try {
@@ -53,28 +45,6 @@ export class datasetServices {
 
 
   // upload a single file
-  // static async up(id, format, parameter, file ) {
-  //   // create form
-  //   const formData = new FormData();
-  //   formData.append('file', file);
-
-  //   try {
-  //     const response = await fetch(`${BACKEND_URL}/api/datasets/${id}/${format}/${parameter}/upload`, {
-  //       method: 'POST',
-  //       body: formData,
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error('Upload failed');
-  //     }
-  //     const result = await response.json();
-  //     return result;
-
-  //   } catch (error) {
-  //     console.error('Error uploading file:', error);
-  //     throw error;
-  //   }
-  // }
   static async up(id, format, parameter, file, onProgress) {
     const formData = new FormData();
     formData.append('file', file);
@@ -107,11 +77,6 @@ export class datasetServices {
   }
 
   // upload multiple files
-  // static async upload(id, format, parameter, files) {
-  //   const uploadPromises = Array.from(files).map(file => this.up(id, format, parameter, file));
-  //   console.log(uploadPromises);
-  //   return await Promise.all(uploadPromises);
-  // }
   static async upload(id, format, parameter, files, onProgress) {
     const totalFiles = files.length;
     let completedFiles = 0;
@@ -129,5 +94,6 @@ export class datasetServices {
     
     return await Promise.all(uploadPromises);
   }
+
 };
   
