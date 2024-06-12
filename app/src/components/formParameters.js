@@ -31,8 +31,35 @@ import { datasetServices } from '../services/datasetServices';
  */
 
 
+
 /* Create section to string parameters */
-export const StringDataset = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
+export const DescriptionParameter = ({ postData }) => {
+
+    const [textValue, setTextValue] = useState('');
+
+    // Function to handle the change event
+    const onChange = (e) => {
+        const newValue = e.target.value;
+        setTextValue(newValue);
+        // save the list of files into POST data for parent component
+        // create the input parameter path for workflow request
+        let valuePOST = newValue;
+        postData['description'] = valuePOST;
+    };
+
+    return (
+        <div className="field">
+            <label htmlFor="workflow-description">Describe briefly your workflow:</label>
+            <InputText id="workflow-description" className="w-full" value={textValue} onChange={onChange}/>
+        </div>
+    );
+};
+
+
+
+
+/* Create section to string parameters */
+export const StringParameter = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
 
     const [textValue, setTextValue] = useState('');
 
@@ -85,8 +112,10 @@ export const StringDataset = ({ datasetId, property, propertyFormat, propertyKey
 
 
 
+
+
 /* Create section to upload files from a folder */
-export const FolderDatasetUpload = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
+export const FolderParameterUpload = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
     const fileUploadRef = useRef(null);
     const [totalSize, setTotalSize] = useState(0);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -243,8 +272,10 @@ export const FolderDatasetUpload = ({ datasetId, property, propertyFormat, prope
 
 
 
+
+
 /* Create section to upload a single file */
-export const FileDatasetUpload = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
+export const FileParameterUpload = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
     const fileUploadRef = useRef(null);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -265,6 +296,11 @@ export const FileDatasetUpload = ({ datasetId, property, propertyFormat, propert
         setUploadProgress(0);  // Reset progress when a new file is selected
     };
 
+    const getExtension = (filename) => {
+        const index = filename.lastIndexOf('.');
+        return index !== -1 ? filename.substring(index + 1) : '';
+    };
+
     const onUpload = async () => {
         if ( selectedFiles.length > 0 ) {
             // upload files
@@ -276,13 +312,14 @@ export const FileDatasetUpload = ({ datasetId, property, propertyFormat, propert
                 });
                 // save the list of files into POST data for parent component
                 // crete the input parameter path for workflow request
-                let valuePOST = `${datasetId}/${selectedFiles[0].name}`;
+                let filename = selectedFiles[0].name;
+                let valuePOST = `${datasetId}/${propertyKey}.${getExtension(filename)}`;
                 let keyPOST = property.title;
                 postData[keyPOST] = {
                     'name': `--${propertyKey}`,
                     'type': propertyFormat,
                     'value': valuePOST
-                };    
+                };
                 // toast message
                 showInfo('','File uploaded successfully');
             } catch (error) {

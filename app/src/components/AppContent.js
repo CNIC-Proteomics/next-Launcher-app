@@ -4,16 +4,14 @@ import {
   Route,
   Switch
 } from 'react-router-dom';
+import {
+  AppToaster,
+} from '../services/toastServices';
 import NavigationTabs from './NavigationTabs';
 import MainPage from './MainPage';
 import Pipelines from './Pipelines';
 import Parameters from './Parameters';
-import {
-  AppToaster,
-  // showInfo,
-  // showError,
-  // showWarning
-} from '../services/toastServices';
+import Workflows from './Workflows';
 
 
 const AppContent = () => {
@@ -27,9 +25,9 @@ const AppContent = () => {
         <Switch>
           <Route path="/" exact component={MainPage} />
           <Route path="/pipelines" component={Pipelines} />
-          {/* <Route path="/parameters/:datasetId" component={Parameters} /> */}
+          <Route path="/workflows" component={Workflows} />
+          {/* <Route path="/workflows/:workflowId" component={Workflow} /> */}
           <Route path="/workflows/:workflowId/datasets/:datasetId" component={Parameters} />
-
         </Switch>
       </div>
     </>

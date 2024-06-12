@@ -11,13 +11,13 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
-import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import {
-  FileDatasetUpload,
-  FolderDatasetUpload,
-  StringDataset
-} from './formDatasets';
+  FileParameterUpload,
+  FolderParameterUpload,
+  StringParameter,
+  DescriptionParameter
+} from './formParameters';
 import {
   showInfo,
   showWarning
@@ -38,18 +38,15 @@ const Parameters = (props) => {
 
   // Capture datasetId from URL
   const { workflowId, datasetId } = useParams();
-  const [ workflowDescription, setWorkflowDescription ] = useState('');
+  // const [ workflowDescription, setWorkflowDescription ] = useState('');
+  const [ postDataDesc ] = useState({});
   const [ postData ] = useState({});
-
-  // const handlePostData = (newPostData) => {
-  //   setPostData(newPostData);
-  // };
-
+  // const [postData, setPostData] = useState({});
 
   // 1. Lauch Workflow
   const launchWorkflow = async () => {
 
-    let postData_2 = {
+    let postData_Test = {
       "ReFrag results": {
           "name": "--re_files",
           "type": "directory-path",
@@ -73,70 +70,49 @@ const Parameters = (props) => {
       "Parameter file": {
           "name": "--params_file",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/params.ini"
+          "value": "6667227e22cc1ec8df1e6c15/params_file.ini"
       },
       "Sitelist file": {
           "name": "--sitelist_file",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/sitelist.txt"
+          "value": "6667227e22cc1ec8df1e6c15/sitelist_file.txt"
       },
       "Groupmaker file": {
           "name": "--groupmaker_file",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/groupmaker.txt"
+          "value": "6667227e22cc1ec8df1e6c15/groupmaker_file.txt"
       }
   };
-  console.log(postData_2);
+  let postDataInputs = postData_Test;
+  // let postDataInputs = postData;
+  console.log(postDataDesc);
+  console.log(postDataInputs);
 
-
-
-    // bash workflow/launch.sh http://localhost:8080 66447ecf309b2cffc914ac88 \
-    // '{"inputs": [
-    //     {"name": "--re_files", "type": "directory-path", "value": "6667227e22cc1ec8df1e6c15/re_files/*"},
-    //     {"name": "--exp_table", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/exp_table.txt"},
-    //     {"name": "--database", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/database.fasta"},
-    //     {"name": "--decoy_prefix", "type": "string", "value": "DECOY_"},
-    //     {"name": "--params_file", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/params.ini"},
-    //     {"name": "--sitelist_file", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/sitelist.txt"},
-    //     {"name": "--groupmaker_file", "type": "file-path", "value": "6667227e22cc1ec8df1e6c15/groupmaker.txt"}
-    // ]
-    // }'
-
-    // bash workflow/edit.sh http://localhost:8080 66447ecf309b2cffc914ac88 \
-    // '{"pipeline": "https://github.com/CNIC-Proteomics/nf-PTM-compass",
-    // "revision": "main",
-    // "profiles": "guess",
-    // "description": "test 2 workflow"
-    // }'
 
     // Check that all parameters are filled in and that the files are uploaded
     let allValid = true;
     // Validate the description
-    if ( workflowDescription === '' ) {
+    if ( Object.keys(postDataDesc).length === 0 ) {
       allValid = false;
       showWarning('',`Please fill in the 'Workflow description' field.`);
     }
     // Validate all input fields: the object has to be full (not empty)
-    for (let key in postData_2) {
-      if ( Object.keys(postData_2[key]).length === 0 ) {
+    for (let key in postDataInputs) {
+      if ( Object.keys(postDataInputs[key]).length === 0 ) {
         allValid = false;
         showWarning('',`Please fill in the '${key}' field.`);
       }
     }
     if (allValid) {
       // Prepare the POST data
-      let postData_desc = {
-        'description': workflowDescription
-      };
-      postData_2 = { 'inputs': Object.values(postData_2) };
-      console.log(postData_2);
+      postDataInputs = { 'inputs': Object.values(postDataInputs) };
 
       // Launch process here
       // Edit the workflow with the description
-      const result_edit = await workflowServices.edit(workflowId, postData_desc);
+      const result_edit = await workflowServices.edit(workflowId, postDataDesc);
       if (result_edit) {
-        // const result_launch = await workflowServices.launch(workflowId, postData_2);
-        const result_launch = { "status": 200, "message": "Workflow \"6667227e22cc1ec8df1e6c14\" was launched" }
+        const result_launch = await workflowServices.launch(workflowId, postDataInputs);
+        // const result_launch = { "status": 200, "message": "Workflow \"6667227e22cc1ec8df1e6c14\" was launched" }
         showInfo('', result_launch.message);
       }
 
@@ -157,15 +133,18 @@ const Parameters = (props) => {
                 {/* <SideMenu definitions={schemaData.definitions} /> */}
               </div>
               <div className="col-9">
-                <div className="field">
+                {/* <div className="field">
                   <label htmlFor="workflow-description">Describe briefly your workflow:</label>
                   <InputText id="workflow-description" className="w-full" value={workflowDescription} onChange={(e) => setWorkflowDescription(e.target.value)}/>
-                </div>
+                </div> */}
+                <DescriptionParameter
+                  postData={postDataDesc}
+                />
                 <Properties
                   definitions={schemaData.definitions}
                   datasetId={datasetId}
                   postData={postData}
-                  />
+                />
               </div>
           </div>
         </div>
@@ -243,7 +222,7 @@ const Properties = ({ definitions, datasetId, postData }) => {
     return (
     <>
       {(property.format === 'path' || property.format === 'directory-path') && (
-        <FolderDatasetUpload
+        <FolderParameterUpload
           datasetId={datasetId}
           property={property}
           propertyFormat={property.format}
@@ -252,7 +231,7 @@ const Properties = ({ definitions, datasetId, postData }) => {
       />
       )}
       {property.format === 'file-path' && (
-        <FileDatasetUpload
+        <FileParameterUpload
           datasetId={datasetId}
           property={property}
           propertyFormat={property.format}
@@ -261,13 +240,13 @@ const Properties = ({ definitions, datasetId, postData }) => {
         />
       )}
       {property.format === 'string' && (
-        <StringDataset
+        <StringParameter
           datasetId={datasetId}
           property={property}
           propertyFormat={property.format}
           propertyKey={propertyKey}
           postData={postData}
-      />
+        />
       )}
     </>
     );
