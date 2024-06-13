@@ -34,6 +34,9 @@ const AppHeader = () => {
       <li className='p-menuitem-content'>
         <Link to="/datasets" className="p-menuitem">Datasets</Link>
       </li>
+      <li className='p-menuitem-content'>
+        <Link to="/help" className="p-menuitem">Help</Link>
+      </li>
     </ul>
   </>
   );

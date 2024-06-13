@@ -127,28 +127,73 @@
 
 
 /*
- * PIPELINES DATATABLE
+ * DATATABLE: PIPELINES, WORKFLOWS,...
  */
 
-.table-pipelines {
+/* general styles */
+
+.table-pipelines,
+.table-workflows {
   margin: 20px 20px;
   min-width: 900px;
 }
 
-.table-pipelines table {
-  color: var(--nl-table-color);
+.table-pipelines *,
+.table-workflows * {
   font-size: var(--nl-font-size);
 }
+
+.table-pipelines .p-button,
+.table-workflows .p-button, 
+.table-workflows  .p-inline-message {
+  padding: 6px;
+}
+
+/* table-pipelines */
 
 .table-pipelines a {
   color: var(--nl-table-color);
+}
+
+/* table-workflows: search filter */
+
+// search filter
+.table-workflows .p-inputtext {
+  height: 10px;
+}
+
+// header
+.table-workflows .p-datatable-header {
+  padding: 0.5rem;
+}
+
+// splitbutton
+.table-workflows .p-splitbutton-menubutton {
+  padding: 3px;
+  width: 25px;
+}
+
+// paginator
+.table-workflows .p-paginator * {
+  height: 30px;
+  line-height: 25px;
+}
+.table-workflows .p-paginator .p-dropdown-label {
+  padding: 2px;
+}
+.table-workflows .p-paginator .p-dropdown-trigger {
+  height: 30px;
+  width: 30px;
+}
+.table-workflows .p-paginator .p-dropdown-trigger .p-icon {
+  height: 10px;
+  width: 10px;
+}
+.p-dropdown-panel .p-dropdown-item {
   font-size: var(--nl-font-size);
 }
 
-.table-pipelines .p-button {
-  font-size: var(--nl-btn-font-size);
-  padding: 7px;
-}
+
 
 /*
  * PARAMETERS SECTION

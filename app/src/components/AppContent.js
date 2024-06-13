@@ -12,6 +12,7 @@ import MainPage from './MainPage';
 import Pipelines from './Pipelines';
 import Parameters from './Parameters';
 import Workflows from './Workflows';
+import Workflow from './Workflow';
 
 
 const AppContent = () => {
@@ -25,9 +26,9 @@ const AppContent = () => {
         <Switch>
           <Route path="/" exact component={MainPage} />
           <Route path="/pipelines" component={Pipelines} />
+          <Route path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} />
           <Route path="/workflows" component={Workflows} />
-          {/* <Route path="/workflows/:workflowId" component={Workflow} /> */}
-          <Route path="/workflows/:workflowId/datasets/:datasetId" component={Parameters} />
+          <Route path="/workflows/:workflowId/:attemptId" component={Workflow} />
         </Switch>
       </div>
     </>

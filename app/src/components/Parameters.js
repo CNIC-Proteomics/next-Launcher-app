@@ -6,9 +6,11 @@ import React, {
   useState,
   useEffect,
   useMemo,
-  // useRef
 } from 'react';
-import { useParams } from 'react-router-dom';
+import {
+  useParams,
+  useHistory
+} from 'react-router-dom';
 import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
@@ -23,7 +25,6 @@ import {
   showWarning
 } from '../services/toastServices';
 import { workflowServices } from '../services/workflowServices';
-// import { datasetServices } from '../services/datasetServices';
 
 
 
@@ -37,11 +38,21 @@ import { workflowServices } from '../services/workflowServices';
 const Parameters = (props) => {
 
   // Capture datasetId from URL
-  const { workflowId, datasetId } = useParams();
-  // const [ workflowDescription, setWorkflowDescription ] = useState('');
+  const { workflowId, attemptId, datasetId } = useParams();
   const [ postDataDesc ] = useState({});
   const [ postData ] = useState({});
-  // const [postData, setPostData] = useState({});
+  const history = useHistory();
+  const [navigate, setNavigate] = useState(false);
+
+  // Navigate to new page
+  useEffect(() => {
+    if (navigate) {
+      let newAttempt = attemptId + 1;
+      history.push({
+        pathname: `/workflows/${workflowId}/${newAttempt}`
+      });
+    }
+  }, [navigate, history, workflowId, attemptId]);
 
   // 1. Lauch Workflow
   const launchWorkflow = async () => {
@@ -50,17 +61,17 @@ const Parameters = (props) => {
       "ReFrag results": {
           "name": "--re_files",
           "type": "directory-path",
-          "value": "6667227e22cc1ec8df1e6c15/re_files/*"
+          "value": "666ac7dede575bad9e78a83b/re_files/*"
       },
       "Experimental table": {
           "name": "--exp_table",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/exp_table.txt"
+          "value": "666ac7dede575bad9e78a83b/exp_table.txt"
       },
       "Protein database": {
           "name": "--database",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/database.fasta"
+          "value": "666ac7dede575bad9e78a83b/database.fasta"
       },
       "Decoy prefix": {
           "name": "--decoy_prefix",
@@ -70,23 +81,23 @@ const Parameters = (props) => {
       "Parameter file": {
           "name": "--params_file",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/params_file.ini"
+          "value": "666ac7dede575bad9e78a83b/params_file.ini"
       },
       "Sitelist file": {
           "name": "--sitelist_file",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/sitelist_file.txt"
+          "value": "666ac7dede575bad9e78a83b/sitelist_file.txt"
       },
       "Groupmaker file": {
           "name": "--groupmaker_file",
           "type": "file-path",
-          "value": "6667227e22cc1ec8df1e6c15/groupmaker_file.txt"
+          "value": "666ac7dede575bad9e78a83b/groupmaker_file.txt"
       }
-  };
-  let postDataInputs = postData_Test;
+    };
+    let postDataInputs = postData_Test;
   // let postDataInputs = postData;
-  console.log(postDataDesc);
-  console.log(postDataInputs);
+  // console.log(postDataDesc);
+  // console.log(postDataInputs);
 
 
     // Check that all parameters are filled in and that the files are uploaded
@@ -103,21 +114,21 @@ const Parameters = (props) => {
         showWarning('',`Please fill in the '${key}' field.`);
       }
     }
+
+    // Launch process here
     if (allValid) {
       // Prepare the POST data
       postDataInputs = { 'inputs': Object.values(postDataInputs) };
 
-      // Launch process here
       // Edit the workflow with the description
       const result_edit = await workflowServices.edit(workflowId, postDataDesc);
       if (result_edit) {
         const result_launch = await workflowServices.launch(workflowId, postDataInputs);
         // const result_launch = { "status": 200, "message": "Workflow \"6667227e22cc1ec8df1e6c14\" was launched" }
         showInfo('', result_launch.message);
+        setNavigate(true); // set state to trigger navigation
       }
-
     }
-
   };
 
 
@@ -130,13 +141,8 @@ const Parameters = (props) => {
           <div className="grid">
               <div className="col-3">
                 <SideMenu definitions={schemaData.definitions} launchWorkflow={launchWorkflow} />
-                {/* <SideMenu definitions={schemaData.definitions} /> */}
               </div>
               <div className="col-9">
-                {/* <div className="field">
-                  <label htmlFor="workflow-description">Describe briefly your workflow:</label>
-                  <InputText id="workflow-description" className="w-full" value={workflowDescription} onChange={(e) => setWorkflowDescription(e.target.value)}/>
-                </div> */}
                 <DescriptionParameter
                   postData={postDataDesc}
                 />

@@ -8,27 +8,19 @@ import React, {
 } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
-import { useHistory } from 'react-router-dom';
+import { InputText } from 'primereact/inputtext';
+import { IconField } from 'primereact/iconfield';
+import { InputIcon } from 'primereact/inputicon';
+import { SplitButton } from 'primereact/splitbutton';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { Message } from 'primereact/message';
 import {
-  showError,
-} from '../services/toastServices';
-// import { workflowServices } from '../services/workflowServices';
-// import { datasetServices } from '../services/datasetServices';
-
-/*
- * Constants
- */
+  FilterMatchMode,
+} from 'primereact/api';
+import { workflowServices } from '../services/workflowServices';
 
 
-// Function to import JSON files dynamically
-const importAll = (r) => {
-  let pipelines = [];
-  r.keys().forEach(key => {
-    pipelines.push(r(key));
-  });
-  return pipelines;
-}
+
 
 /*
  * Components
@@ -40,60 +32,192 @@ const Workflows = () => {
 
   // Define header
   const columns = [
-    { field: 'status', header: 'Status' },
-    { field: 'title', header: 'Title' },
+    { field: 'name', header: 'Name' },
     { field: 'description', header: 'Description' },
-    { field: 'url', header: 'URL' },
-    { field: 'action', header: 'Action' },
+    { field: 'date_submitted', header: 'Date submitted' },
+    { field: 'attempt', header: 'Attempt' },
+    { field: 'status', header: 'Status' },
+    { field: 'action', header: 'Action' }
   ];
 
-  // Transform the data pipeline for the table
-  const convertDataToTable = (data) => ({
-    id: data.$id,
-    status: <StatusIcon status={data.status} />,
-    title: data.title,
-    description: data.description,
-    url: <UrlLink url={data.url} />,
-    action: <LunchButton data={data} />
-  });
+  // Transform timestamp to date
+  const timestampToDate = (timestamp) => {
+    // convert the timestamp to a Date object
+    const date = new Date(timestamp);
+  
+    // get the day, month, and year from the Date object
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+  
+    // format the date as dd/mm/yyyy hh:mm:ss
+    const formattedDateTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;  
+  
+    return formattedDateTime;
+  };
 
-  const [datatable] = useState(pipelineFiles.map(convertDataToTable));
+  // GET request with the workflows information
+  const [workflows, setWorkflows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+
+    // transform the data for the table
+    const transformData = (data) => {
+      let result = [];
+
+      data.forEach(item => {
+        const { name, description, attempts } = item;
+        attempts.forEach(attempt => {
+          const { date_submitted, id, status } = attempt;
+          result.push({
+            name,
+            description,
+            'date_submitted': timestampToDate(date_submitted),
+            'attempt': id,
+            status,
+            'action': <ActionButton data={item} />
+          });
+        });
+      });
+
+      return result;
+    };
+    // get the workflows
+    const fetchWorkflows = async () => {
+        try {
+            const data = await workflowServices.get();
+            setWorkflows(transformData(data));
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching workflows:', error);
+            setLoading(false);
+        }
+    };
+    fetchWorkflows();
+  }, []);
+  
+  // Develop the search filter in the datatable
+  const [filters, setFilters] = useState({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    status: { value: null, matchMode: FilterMatchMode.EQUALS }
+  });
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const onGlobalFilterChange = (e) => {
+    const value = e.target.value;
+    let _filters = { ...filters };
+    _filters['global'].value = value;
+    setFilters(_filters);
+    setGlobalFilterValue(value);
+  };
+  const statusBodyTemplate = (rowData) => {
+    return <StatusMessage status={rowData.status} />;
+  };
+
+  // Header
+  const renderHeader = () => {
+    return (
+        <div className="table-workflows-search flex justify-content-end">
+            <IconField iconPosition="left">
+                <InputIcon className="pi pi-search" />
+                <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Keyword Search" />
+            </IconField>
+        </div>
+    );
+  };
+  const header = renderHeader();
+
+  // Selected workflows
+  const [selectedWorkflows, setSelectedWorkflows] = useState(null);
 
   return (
-    <div className='table-pipelines'>
-      <DataTable value={datatable} tableStyle={{ minWidth: '50rem' }}>
+    <div className='table-workflows'>
+      {loading ? (
+        <div className="flex justify-content-center flex-wrap">
+          <ProgressSpinner />
+        </div>
+      ) : (
+        <>
+        <DataTable
+          size='small'
+          value={workflows}
+          header={header}
+          filters={filters}
+          globalFilterFields={columns.map(c => c.field)}
+          paginator rows={20} rowsPerPageOptions={[5, 10, 20]}
+          selectionMode={'checkbox'} selection={selectedWorkflows} onSelectionChange={(e) => setSelectedWorkflows(e.value)}>
+          <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
           {columns.map((col, i) => (
-              // <Column key={i} field={col.field} header={col.header} headerStyle={{display:'none'}} />
-              <Column key={i} field={col.field} header={col.header} />
+              <Column
+                key={i}
+                field={col.field}
+                header={col.header}
+                body={col.field === 'status' ? statusBodyTemplate : undefined}
+                // filter={col.field === 'status'}
+              />
           ))}
-      </DataTable>
+        </DataTable>
+        </>
+      )}
   </div>
   );
 };
 
-const StatusIcon = ({ status }) => {
-  const iconClass = {
-    0: 'pi pi-check-circle',
-    1: 'pi pi-exclamation-triangle',
-    2: 'pi pi-exclamation-triangle',
-    default: 'pi pi-question-circle'
-  }[status];
-  const color = {
-    0: 'green',
-    1: 'orange',
-    2: 'red',
-    default: 'blue'
+const StatusMessage = ({ status }) => {
+  const severity = {
+    'running': 'info',
+    'completed': 'success',
+    'failed': 'error',
   }[status];
 
-  return <i className={iconClass} style={{ color }}></i>;
+  return ( <Message severity={severity} text={status} /> );
 };
 
-const UrlLink = ({ url }) => (
-  <div className="flex gap-1">
-    <a href={url} target='_blank' rel="noopener noreferrer">{url}</a>
-    <i className='pi pi-external-link' style={{ fontSize: '0.6rem' }}></i>
-  </div>
-);
+const ActionButton = ({ data }) => {
 
+  // // Navigate to new page
+  // useEffect(() => {
+  //   if (navigate) {
+  //     let newAttempt = attemptId + 1;
+  //     history.push({
+  //       pathname: `/workflows/${workflowId}/${newAttempt}`
+  //     });
+  //   }
+  // }, [navigate, history, workflowId, attemptId]);
+
+  
+  // const items = [
+  //   {
+  //       label: 'Option 1',
+  //       icon: 'pi pi-ellipsis-v',
+  //       command: () => {
+  //           console.log('Option 1 clicked');
+  //       }
+  //   },
+  //   {
+  //       label: 'Option 2',
+  //       icon: 'pi pi-external-link',
+  //       command: () => {
+  //           console.log('Option 2 clicked');
+  //       }
+  //   },
+  //   {
+  //       label: 'Option 3',
+  //       icon: 'pi pi-times',
+  //       command: () => {
+  //           console.log('Option 3 clicked');
+  //       }
+  //   }
+  // ];
+  const items = [];
+  const onClick = () => {
+      console.log('Primary button clicked');
+      console.log(data);
+
+  };
+  return ( <SplitButton label="Open" icon="pi pi-caret-right" dropdownIcon="pi pi-ellipsis-v" onClick={onClick} model={items} /> );
+};
 
 export default Workflows;
