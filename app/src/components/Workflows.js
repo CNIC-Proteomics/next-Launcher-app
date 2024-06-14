@@ -187,8 +187,7 @@ const ActionButton = ({ data, attempt }) => {
   useEffect(() => {
     if (navigate) {
       history.push({
-        pathname: `/workflows/${data._id}/${attempt}`,
-        state: { schema: data }
+        pathname: `/workflows/${data._id}/${attempt}`
       });
     }
   }, [navigate, history, data, attempt]);

@@ -21,9 +21,10 @@ import {
 export class workflowServices {
 
   // get the workflows
-  static async get() {
+  static async get(id=null) {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/workflows`, {
+      let url = id ? `${BACKEND_URL}/api/workflows/${id}` : `${BACKEND_URL}/api/workflows`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

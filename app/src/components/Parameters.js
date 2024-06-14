@@ -49,7 +49,7 @@ const Parameters = (data) => {
     if (navigate) {
       let newAttempt = Number(attemptId) + 1;
       history.push({
-        pathname: `/workflows/${workflowId}/${newAttempt}`
+        pathname: `/workflows/${workflowId}/${newAttempt}`,
       });
     }
   }, [navigate, history, workflowId, attemptId]);

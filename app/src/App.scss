@@ -320,13 +320,12 @@
 /* Workflow panel */
 
 .panel-workflow {
-  // margin: 20px 20px;
-  padding: 10px 100px 20px 100px;
+  padding-top: 20px;
 }
 
-// .panel-workflow .p-tabview {
-//   width: 1000px;
-// }
+.panel-workflow .p-tabview {
+  width: 1000px;
+}
 
 .panel-workflow .p-tabview-nav-container {
   font-size: var(--nl-title-font-size);

@@ -38,13 +38,42 @@ const Workflow = (data) => {
 	const { workflowId, attemptId } = useParams();
 	// create constants
   const [workflow, setWorkflow] = useState({});
+	// ref to track if data has been fetched
+	const hasWorkflowData = useRef(false);
 
-  // get the request data
+  // // get the request data
+  // useEffect(() => {
+	// 	if ( data.location.state.schema ) {
+	// 		setWorkflow(data.location.state.schema);
+	// 	}
+	// }, [data]);
+
+  // get the workflow data
   useEffect(() => {
-		if ( data.location.state.schema ) {
-			setWorkflow(data.location.state.schema);
+		if (workflowId) {
+			if (!hasWorkflowData.current) {
+				getWorkflowData(workflowId);
+				hasWorkflowData.current = true; // mark as fetched
+			}
 		}
-	}, [data]);
+	}, [workflowId]);
+
+	// Make the GET request to get the log
+	const getWorkflowData = async (workflowId) => {
+		try {
+			const result = await workflowServices.get(workflowId);
+			if (result) {
+				console.log("getWorkflowData");
+				setWorkflow(result);
+			}
+			else {
+				showError('', 'The workflow info was not obtained correctly');
+				console.error('The workflow info was not obtained correctly.');
+			}
+		} catch (error) {
+			console.error('Error getting workflow info:', error);
+		}
+	};
 
 	return (
 		<>
