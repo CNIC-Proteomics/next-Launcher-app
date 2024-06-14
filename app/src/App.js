@@ -14,20 +14,11 @@ import AppContent from './components/AppContent';
  */
 
 
-const AppDescription = () => {
-  return (
-    <div className='app-description'>
-      Web server for the execution of Nextflow pipelines
-    </div>
-  );
-}
-
 function App() {
   return (
     <div className="App">
       <Router>
         <AppHeader />
-        <AppDescription />
         <AppContent />
       </Router>
     </div>

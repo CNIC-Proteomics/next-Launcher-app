@@ -20,7 +20,6 @@ import {
 
 export class workflowServices {
 
-
   // get the workflows
   static async get() {
     try {
@@ -98,6 +97,28 @@ export class workflowServices {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+  // get the workflow log for a given attempt
+  static async log(id, attempt) {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/workflows/${id}/${attempt}/log`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {

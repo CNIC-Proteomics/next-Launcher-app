@@ -1,3 +1,7 @@
+/*
+ * Import libraries
+ */
+
 import React from 'react';
 import {
   // BrowserRouter as Router,
@@ -15,20 +19,33 @@ import Workflows from './Workflows';
 import Workflow from './Workflow';
 
 
+/*
+ * Components
+ */
+
+const AppDescription = () => {
+  return (
+    <div className='app-description'>
+      Web server for the execution of Nextflow pipelines
+    </div>
+  );
+}
+
 const AppContent = () => {
   return (
     <>
       <AppToaster />
-      <div className='navigation-tabs'>
-        <NavigationTabs />
-      </div>
       <div className='app-container'>
+        <AppDescription />
+        <div className='app-navigation-tabs'>
+          <NavigationTabs />
+        </div>
         <Switch>
-          <Route path="/" exact component={MainPage} />
-          <Route path="/pipelines" component={Pipelines} />
           <Route path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} />
-          <Route path="/workflows" component={Workflows} />
           <Route path="/workflows/:workflowId/:attemptId" component={Workflow} />
+          <Route path="/workflows" component={Workflows} />
+          <Route path="/pipelines" component={Pipelines} />
+          <Route path="/" exact component={MainPage} />
         </Switch>
       </div>
     </>

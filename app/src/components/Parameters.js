@@ -35,9 +35,9 @@ import { workflowServices } from '../services/workflowServices';
 
 
 /* Create the Parameters panels */
-const Parameters = (props) => {
+const Parameters = (data) => {
 
-  // Capture datasetId from URL
+  // Capture data from URL
   const { workflowId, attemptId, datasetId } = useParams();
   const [ postDataDesc ] = useState({});
   const [ postData ] = useState({});
@@ -47,7 +47,7 @@ const Parameters = (props) => {
   // Navigate to new page
   useEffect(() => {
     if (navigate) {
-      let newAttempt = attemptId + 1;
+      let newAttempt = Number(attemptId) + 1;
       history.push({
         pathname: `/workflows/${workflowId}/${newAttempt}`
       });
@@ -133,8 +133,8 @@ const Parameters = (props) => {
 
 
   // Pipeline schema
-  if ( props.location.state.schema ) {
-    const schemaData = props.location.state.schema;
+  if ( data.location.state.schema ) {
+    const schemaData = data.location.state.schema;
     return (
       <>
         <div className='parameters'>

@@ -6,6 +6,9 @@ import React, {
   useState,
   useEffect
 } from 'react';
+import {
+  useHistory
+} from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
@@ -78,7 +81,7 @@ const Workflows = () => {
             'date_submitted': timestampToDate(date_submitted),
             'attempt': id,
             status,
-            'action': <ActionButton data={item} />
+            'action': <ActionButton data={item} attempt={id} />
           });
         });
       });
@@ -175,19 +178,21 @@ const StatusMessage = ({ status }) => {
   return ( <Message severity={severity} text={status} /> );
 };
 
-const ActionButton = ({ data }) => {
+const ActionButton = ({ data, attempt }) => {
 
-  // // Navigate to new page
-  // useEffect(() => {
-  //   if (navigate) {
-  //     let newAttempt = attemptId + 1;
-  //     history.push({
-  //       pathname: `/workflows/${workflowId}/${newAttempt}`
-  //     });
-  //   }
-  // }, [navigate, history, workflowId, attemptId]);
+  const history = useHistory();
+  const [navigate, setNavigate] = useState(false);
 
-  
+  // Navigate to new page
+  useEffect(() => {
+    if (navigate) {
+      history.push({
+        pathname: `/workflows/${data._id}/${attempt}`,
+        state: { schema: data }
+      });
+    }
+  }, [navigate, history, data, attempt]);
+
   // const items = [
   //   {
   //       label: 'Option 1',
@@ -195,26 +200,11 @@ const ActionButton = ({ data }) => {
   //       command: () => {
   //           console.log('Option 1 clicked');
   //       }
-  //   },
-  //   {
-  //       label: 'Option 2',
-  //       icon: 'pi pi-external-link',
-  //       command: () => {
-  //           console.log('Option 2 clicked');
-  //       }
-  //   },
-  //   {
-  //       label: 'Option 3',
-  //       icon: 'pi pi-times',
-  //       command: () => {
-  //           console.log('Option 3 clicked');
-  //       }
   //   }
   // ];
   const items = [];
   const onClick = () => {
-      console.log('Primary button clicked');
-      console.log(data);
+      setNavigate(true);
 
   };
   return ( <SplitButton label="Open" icon="pi pi-caret-right" dropdownIcon="pi pi-ellipsis-v" onClick={onClick} model={items} /> );
