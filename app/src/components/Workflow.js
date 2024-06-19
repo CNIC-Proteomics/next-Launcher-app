@@ -101,6 +101,8 @@ const WorkflowPanels = ({workflowId, attemptId}) => {
   const [execLogText, setExecLogText] = useState('');
   const [moduleFiles, setModuleFiles] = useState({});
 	const [logFiles, setLogFiles] = useState({});
+  const [expandedModuleKeys, setExpandedModuleKeys] = useState({});
+  const [expandedLogKeys, setExpandedLogKeys] = useState({});
 	// ref to track if data has been fetched
 	const hasLogData = useRef(false);
 
@@ -109,7 +111,9 @@ const WorkflowPanels = ({workflowId, attemptId}) => {
 		if (workflowId && attemptId) {
 			if (!hasLogData.current) {
 				getWorkflowLog(workflowId, attemptId);
-				hasLogData.current = true; // Mark as fetched
+				getWorkflowOutputs(workflowId, attemptId, 'modules');
+				getWorkflowOutputs(workflowId, attemptId, 'logs');
+				hasLogData.current = true; // mark as fetched
 			}
 		}
 	}, [workflowId, attemptId]);
@@ -157,35 +161,64 @@ const WorkflowPanels = ({workflowId, attemptId}) => {
 	};
 
 
-	// Controls the Tab Views
-  const onTabChange = (e) => {
-    setActiveIndex(e.index);
-		switch (e.index) {
-			case 0:
-				getWorkflowLog(workflowId, attemptId);
-				break;
-			case 1:
-				getWorkflowOutputs(workflowId, attemptId, 'modules');
-				break;
-			case 2:
-				getWorkflowOutputs(workflowId, attemptId, 'logs');
-				break;
-			default:
-				break;
-		}
+	// // Controls the Tab Views
+  // const onTabChange = (e) => {
+  //   setActiveIndex(e.index);
+	// 	switch (e.index) {
+	// 		case 0:
+	// 			getWorkflowLog(workflowId, attemptId);
+	// 			break;
+	// 		case 1:
+	// 			getWorkflowOutputs(workflowId, attemptId, 'modules');
+	// 			break;
+	// 		case 2:
+	// 			getWorkflowOutputs(workflowId, attemptId, 'logs');
+	// 			break;
+	// 		default:
+	// 			break;
+	// 	}
+  // };
+
+  const handleModuleExpand = (e) => {
+    setExpandedModuleKeys(e.value);
+  };
+
+  const handleLogExpand = (e) => {
+    setExpandedLogKeys(e.value);
   };
 
 	return (
 		<div className="panel-workflow flex justify-content-center">
-				<TabView activeIndex={activeIndex}  onTabChange={onTabChange}>
+				{/* <TabView activeIndex={activeIndex}  onTabChange={onTabChange}> */}
+				<TabView>
 						<TabPanel header="Execution log" >
 							<Terminal execLogText={execLogText} />
 						</TabPanel>
 						<TabPanel header="File viewer">
-							<FileViewer files={moduleFiles} />
+							<div className='file-viewer'>
+								<FileViewer
+									typeOutput='modules'
+									files={moduleFiles}
+									workflowId={workflowId}
+									attemptId={attemptId}
+									getWorkflowOutputs={getWorkflowOutputs}
+									expandedKeys={expandedModuleKeys}
+									onToggle={handleModuleExpand}
+								/>
+							</div>
 						</TabPanel>
 						<TabPanel header="Log viewer">
-							<FileViewer files={logFiles} />
+							<div className='log-viewer'>
+								<FileViewer
+									typeOutput='logs'
+									files={logFiles}
+									workflowId={workflowId}
+									attemptId={attemptId}
+									getWorkflowOutputs={getWorkflowOutputs}
+									expandedKeys={expandedLogKeys}
+									onToggle={handleLogExpand}
+								/>
+							</div>
 						</TabPanel>
 				</TabView>
 		</div>
@@ -205,15 +238,20 @@ const Terminal = ({ execLogText }) => {
 
 
 
+
 /* File viewer */
-const FileViewer = ({files}) => {
-	const actionTemplate = () => {
-		return (
-		<div className="flex flex-wrap gap-2">
-				<Button type="button" icon="pi pi-search" rounded></Button>
-				<Button type="button" icon="pi pi-pencil" severity="success" rounded></Button>
-		</div>
-		);
+/* Log viewer */
+const FileViewer = ({typeOutput, files, workflowId, attemptId, getWorkflowOutputs, expandedKeys, onToggle}) => {
+
+	const actionTemplate = (rowData) => {
+		if (rowData['data'].type !== 'folder') {
+			return (
+				<div className="action-button">
+					<Button type="button" icon="pi pi-download"></Button>
+				</div>
+			);
+		}
+		return null; // don't render anything if the type is 'folder'
 	};
 
 	const togglerTemplate = (node, options) => {
@@ -225,24 +263,25 @@ const FileViewer = ({files}) => {
 		});
 		return (
 		<button type="button" className="p-treetable-toggler p-link" style={options.buttonStyle} tabIndex={-1} onClick={options.onClick}>
-				<span className={iconClassName} aria-hidden="true"></span>
+			<span className={iconClassName} aria-hidden="true"></span>
 		</button>
 		);
 	};
 
 	const header = (
-		<div className="flex justify-content-start">
-				<Button icon="pi pi-refresh" label="Reload" severity="warning" />
+		<div className="header-button justify-content-start flex flex-row-reverse flex-wrap gap-2">
+			<Button icon="pi pi-download" label="Download" severity="help" />
+			<Button icon="pi pi-refresh" label="Reload" severity="warning" onClick={() => getWorkflowOutputs(workflowId, attemptId, typeOutput)}/>
 		</div>
 	);
 
 	return (
 	<div className="card">
-			<TreeTable value={files} header={header} togglerTemplate={togglerTemplate} tableStyle={{ minWidth: '50rem' }}>
+			<TreeTable value={files} header={header} togglerTemplate={togglerTemplate} tableStyle={{inWidth:'50rem'}} expandedKeys={expandedKeys} onToggle={onToggle} >
 					<Column field="name" header="Name" expander></Column>
-					<Column field="size" header="Size"></Column>
-					<Column field="type" header="Type"></Column>
-					<Column body={actionTemplate} headerClassName="w-10rem" />
+					<Column field="size" header="Size" className="short-column"></Column>
+					<Column field="type" header="Type" className="short-column"></Column>
+					<Column 						 header="Action" className="short-column" body={actionTemplate} />
 			</TreeTable>
 	</div>
 	);

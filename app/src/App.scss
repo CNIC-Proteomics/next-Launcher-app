@@ -320,7 +320,7 @@
 /* Workflow panel */
 
 .panel-workflow {
-  padding-top: 20px;
+  padding: 20px 0 20px 0;
 }
 
 .panel-workflow .p-tabview {
@@ -394,6 +394,26 @@
 }
 
 
+/* File & Log viewer */
+
+.panel-workflow td {
+  padding: 0;
+}
+
+.panel-workflow .action-button .p-button {
+  width: 3rem;
+  height: 1rem;
+}
+
+.panel-workflow .short-column {
+  width: 110px;
+  text-align: center;
+}
+
+.panel-workflow .header-button {
+  // width: 4rem;
+}
+
 /* File viewer */
 
 .panel-workflow .file-viewer {
@@ -402,6 +422,9 @@
   overflow-y: auto;
 }
 
+.panel-workflow .file-viewer * {
+  font-size: var(--nl-font-size);
+}
 
 /* Log viewer */
 
@@ -409,4 +432,8 @@
   height: 900px;
   max-height: 900px;
   overflow-y: auto;
+}
+
+.panel-workflow .log-viewer * {
+  font-size: var(--nl-font-size);
 }
