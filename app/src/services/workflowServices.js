@@ -1,22 +1,15 @@
-/*
- * Workflow Services
+/**
+ * workflowServices is a class that defines the methods used to connect to the 'workflows' REST API
  */
 
 
-/*
- * Import libraries/constants
- */
-
+// Import libraries/constants
 import {
   BACKEND_URL, 
   // MAX_FILE_SIZE
 } from '../constants';
 
 
-
-/*
- * Define class
- */
 
 export class workflowServices {
 

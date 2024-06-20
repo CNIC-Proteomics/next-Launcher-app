@@ -378,6 +378,12 @@
   text-decoration: none;
 }
 
+.panel-workflow .panel-workflow-download-button .p-button {
+  width: 200px;
+  padding: 10px 5px 10px 5px;
+}
+
+
 /* Execution log */
 
 .panel-workflow .terminal-container {
@@ -410,9 +416,6 @@
   text-align: center;
 }
 
-.panel-workflow .header-button {
-  // width: 4rem;
-}
 
 /* File viewer */
 

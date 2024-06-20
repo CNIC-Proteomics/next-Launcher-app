@@ -1,21 +1,15 @@
-/*
- * Workflow Services
+/**
+ * datasetServices is a class that defines the methods used to connect to the 'dataset' REST API.
  */
 
 
-/*
- * Import libraries/constants
- */
-
+// Import libraries/constants
 import {
   BACKEND_URL, 
 } from '../constants';
 
 
 
-/*
- * Define class
- */
 
 export class datasetServices {
 

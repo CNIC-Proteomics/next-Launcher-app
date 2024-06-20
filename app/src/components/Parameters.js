@@ -38,21 +38,30 @@ import { workflowServices } from '../services/workflowServices';
 const Parameters = (data) => {
 
   // Capture data from URL
-  const { workflowId, attemptId, datasetId } = useParams();
+  // const { workflowId, attemptId, datasetId } = useParams();
+  const { workflowId, datasetId } = useParams();
   const [ postDataDesc ] = useState({});
   const [ postData ] = useState({});
   const history = useHistory();
   const [navigate, setNavigate] = useState(false);
 
   // Navigate to new page
+  // useEffect(() => {
+  //   if (navigate) {
+  //     let newAttempt = Number(attemptId) + 1;
+  //     history.push({
+  //       pathname: `/workflows/${workflowId}/${newAttempt}`,
+  //       pathname: `/workflows`,
+  //     });
+  //   }
+  // }, [navigate, history, workflowId, attemptId]);
   useEffect(() => {
     if (navigate) {
-      let newAttempt = Number(attemptId) + 1;
       history.push({
-        pathname: `/workflows/${workflowId}/${newAttempt}`,
+        pathname: `/workflows`,
       });
     }
-  }, [navigate, history, workflowId, attemptId]);
+  }, [navigate, history]);
 
   // 1. Lauch Workflow
   const launchWorkflow = async () => {

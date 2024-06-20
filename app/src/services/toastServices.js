@@ -1,14 +1,13 @@
-/*
- * Import libraries
+
+/**
+ * toastServices is a component that displays the Toast component for the application.
  */
 
+
+// Import libraries/constants
 import { createRef } from 'react';
 import { Toast } from 'primereact/toast';
 
-
-/*
- * Components
- */
 
 
 // Create a ref for the Toast component

@@ -1,4 +1,4 @@
-/*
+/**
  * Import libraries
  */
 
@@ -10,6 +10,7 @@ import React, {
 import {
   useParams,
 } from 'react-router-dom';
+// import axios from 'axios';
 import {
   TabView,
   TabPanel
@@ -18,6 +19,7 @@ import { Card } from 'primereact/card';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
+import { ProgressSpinner } from 'primereact/progressspinner';
 import AnsiToHtml from 'ansi-to-html';
 import classNames from 'classnames';
 import {
@@ -25,65 +27,67 @@ import {
 } from '../services/toastServices';
 import { workflowServices } from '../services/workflowServices';
 import { outputServices } from '../services/outputServices';
+import * as globalServices from '../services/globalServices';
+
 
   
   
-/*
- * Components
+/**
+ * Component that creates the workflow page from the workflow ID and the number of execution attempt.
  */
-  
-
-const Workflow = (data) => {
+const Workflow = () => {
 	// capture data from URL
 	const { workflowId, attemptId } = useParams();
+	
 	// create constants
   const [workflow, setWorkflow] = useState({});
-	// ref to track if data has been fetched
+	const [attempt, setAttempt] = useState({});
+	// create references to track if data has been fetched
 	const hasWorkflowData = useRef(false);
-
-  // // get the request data
-  // useEffect(() => {
-	// 	if ( data.location.state.schema ) {
-	// 		setWorkflow(data.location.state.schema);
-	// 	}
-	// }, [data]);
 
   // get the workflow data
   useEffect(() => {
+
+		// make the GET request to get the log
+		const getWorkflowData = async (workflowId) => {
+			try {
+				const result = await workflowServices.get(workflowId);
+				if (result) {
+					setWorkflow(result);
+					// get the status of the attempt execution
+					setAttempt(globalServices.getAttemptById(result, attemptId));
+				}
+				else {
+					showError('', 'The workflow info was not obtained correctly');
+					console.error('The workflow info was not obtained correctly.');
+				}
+			} catch (error) {
+				console.error('Error getting workflow info:', error);
+			}
+		};
+
 		if (workflowId) {
 			if (!hasWorkflowData.current) {
 				getWorkflowData(workflowId);
 				hasWorkflowData.current = true; // mark as fetched
 			}
 		}
-	}, [workflowId]);
-
-	// Make the GET request to get the log
-	const getWorkflowData = async (workflowId) => {
-		try {
-			const result = await workflowServices.get(workflowId);
-			if (result) {
-				console.log("getWorkflowData");
-				setWorkflow(result);
-			}
-			else {
-				showError('', 'The workflow info was not obtained correctly');
-				console.error('The workflow info was not obtained correctly.');
-			}
-		} catch (error) {
-			console.error('Error getting workflow info:', error);
-		}
-	};
+	}, [workflowId, attemptId]);
 
 	return (
-		<>
-			<WorkflowCard workflow={workflow} />
-			<WorkflowPanels workflowId={workflowId} attemptId={attemptId} />
-		</>
+	<>
+		<WorkflowCard workflow={workflow} />
+		<WorkflowPanels workflowId={workflowId} attempt={attempt} />
+	</>
 	);
 };
 
 
+
+
+/**
+ * Component that creates the workflow card with the name, description,...
+ */
 const WorkflowCard = ({workflow}) => {
 	return (
 		<div className="card-workflow">
@@ -95,9 +99,13 @@ const WorkflowCard = ({workflow}) => {
 };
 
 
-const WorkflowPanels = ({workflowId, attemptId}) => {
+
+
+/** 
+ * Component that creates the workflow Panels: Execution log, Module file viewer, Log file viewer
+ */
+const WorkflowPanels = ({workflowId, attempt}) => {
 	// create constants
-  const [activeIndex, setActiveIndex] = useState(0);
   const [execLogText, setExecLogText] = useState('');
   const [moduleFiles, setModuleFiles] = useState({});
 	const [logFiles, setLogFiles] = useState({});
@@ -105,25 +113,41 @@ const WorkflowPanels = ({workflowId, attemptId}) => {
   const [expandedLogKeys, setExpandedLogKeys] = useState({});
 	// ref to track if data has been fetched
 	const hasLogData = useRef(false);
+	const logIntervalRef = useRef(null);
+	// interval duration in milliseconds (e.g., 5000 ms for 5 seconds)
+	const intervalDuration = 5000;
+  // const [activeIndex, setActiveIndex] = useState(0);
 
   // get the request data
   useEffect(() => {
-		if (workflowId && attemptId) {
+		if (workflowId && attempt.id) {
 			if (!hasLogData.current) {
-				getWorkflowLog(workflowId, attemptId);
-				getWorkflowOutputs(workflowId, attemptId, 'modules');
-				getWorkflowOutputs(workflowId, attemptId, 'logs');
+				getWorkflowLog(workflowId, attempt.id);
+				getWorkflowOutputs(workflowId, attempt.id, 'modules');
+				getWorkflowOutputs(workflowId, attempt.id, 'logs');
 				hasLogData.current = true; // mark as fetched
 			}
+
+			// Set up the interval to update the log text
+			logIntervalRef.current = setInterval(() => {
+				getWorkflowLog(workflowId, attempt.id);
+			}, intervalDuration);
+
+			// Clean up the interval on component unmount
+			return () => {
+				if (logIntervalRef.current) {
+					clearInterval(logIntervalRef.current);
+				}
+			};
+
 		}
-	}, [workflowId, attemptId]);
+	}, [workflowId, attempt.id]);
 
 	// Make the GET request to get the log
 	const getWorkflowLog = async (workflowId, attemptId) => {
 		try {
 			const result = await workflowServices.log(workflowId, attemptId);
 			if (result && result.log) {
-				console.log("getWorkflowLog");
 				setExecLogText(result.log);
 			}
 			else {
@@ -149,7 +173,6 @@ const WorkflowPanels = ({workflowId, attemptId}) => {
 				else if ( typeOutput === 'logs' ) {
 					setLogFiles(filteredResult);
 				}
-				console.log("getWorkflowOutputs");
 			}
 			else {
 				showError('', 'The outputs were not obtained correctly');
@@ -161,66 +184,77 @@ const WorkflowPanels = ({workflowId, attemptId}) => {
 	};
 
 
-	// // Controls the Tab Views
-  // const onTabChange = (e) => {
-  //   setActiveIndex(e.index);
-	// 	switch (e.index) {
-	// 		case 0:
-	// 			getWorkflowLog(workflowId, attemptId);
-	// 			break;
-	// 		case 1:
-	// 			getWorkflowOutputs(workflowId, attemptId, 'modules');
-	// 			break;
-	// 		case 2:
-	// 			getWorkflowOutputs(workflowId, attemptId, 'logs');
-	// 			break;
-	// 		default:
-	// 			break;
-	// 	}
-  // };
+	// Download the archive file for an attempt execution of a workflow
+	const downloadArchive = async (workflowId, attemptId, cancelToken) => {
+		try {
+			await outputServices.archive(workflowId, attemptId, cancelToken);
+		} catch (error) {
+			showError('', 'The archive file was not downloaded correctly');
+			console.error('Error getting archive:', error);
+		}
+	};
 
+
+	// Download an output file for an attempt execution of a workflow
+	const downloadOutput = async (workflowId, attemptId, output) => {
+		try {
+			// get the relative path of file
+			let { name, path } = output.data;
+			let filePath = `${path}/${name}`;
+			await outputServices.single(workflowId, attemptId, filePath);
+		} catch (error) {
+			showError('', 'The output file was not downloaded correctly');
+			console.error('Error getting output:', error);
+		}
+	};
+
+	// Functions that freeze the elements opened in the file tree (viewer)
   const handleModuleExpand = (e) => {
     setExpandedModuleKeys(e.value);
   };
-
   const handleLogExpand = (e) => {
     setExpandedLogKeys(e.value);
   };
 
 	return (
-		<div className="panel-workflow flex justify-content-center">
-				{/* <TabView activeIndex={activeIndex}  onTabChange={onTabChange}> */}
-				<TabView>
-						<TabPanel header="Execution log" >
-							<Terminal execLogText={execLogText} />
-						</TabPanel>
-						<TabPanel header="File viewer">
-							<div className='file-viewer'>
-								<FileViewer
-									typeOutput='modules'
-									files={moduleFiles}
-									workflowId={workflowId}
-									attemptId={attemptId}
-									getWorkflowOutputs={getWorkflowOutputs}
-									expandedKeys={expandedModuleKeys}
-									onToggle={handleModuleExpand}
-								/>
-							</div>
-						</TabPanel>
-						<TabPanel header="Log viewer">
-							<div className='log-viewer'>
-								<FileViewer
-									typeOutput='logs'
-									files={logFiles}
-									workflowId={workflowId}
-									attemptId={attemptId}
-									getWorkflowOutputs={getWorkflowOutputs}
-									expandedKeys={expandedLogKeys}
-									onToggle={handleLogExpand}
-								/>
-							</div>
-						</TabPanel>
-				</TabView>
+		<div className="panel-workflow flex justify-content-center flex flex flex-row-reverse gap-2">
+			<div className="panel-workflow-download-button">
+				{ attempt.status === 'completed' ? (<ArchiveButton workflowId={workflowId} attemptId={attempt.id} downloadArchive={downloadArchive} />) : (<></>) }
+			</div>
+			{/* <TabView activeIndex={activeIndex}  onTabChange={onTabChange}> */}
+			<TabView>
+					<TabPanel header="Execution log" >
+						<Terminal execLogText={execLogText} />
+					</TabPanel>
+					<TabPanel header="File viewer">
+						<div className='file-viewer'>
+							<FileViewer
+								typeOutput='modules'
+								files={moduleFiles}
+								expandedKeys={expandedModuleKeys}
+								onToggle={handleModuleExpand}
+								workflowId={workflowId}
+								attemptId={attempt.id}
+								getWorkflowOutputs={getWorkflowOutputs}
+								downloadOutput={downloadOutput}
+							/>
+						</div>
+					</TabPanel>
+					<TabPanel header="Log viewer">
+						<div className='log-viewer'>
+							<FileViewer
+								typeOutput='logs'
+								files={logFiles}
+								expandedKeys={expandedLogKeys}
+								onToggle={handleLogExpand}
+								workflowId={workflowId}
+								attemptId={attempt.id}
+								getWorkflowOutputs={getWorkflowOutputs}
+								downloadOutput={downloadOutput}
+							/>
+						</div>
+					</TabPanel>
+			</TabView>
 		</div>
 	);
 };
@@ -228,26 +262,87 @@ const WorkflowPanels = ({workflowId, attemptId}) => {
 
 
 
-/* Execution log */
-const Terminal = ({ execLogText }) => {
-	if (execLogText === '') { execLogText = 'Sorry. The log info is empty' }
-	const convert = new AnsiToHtml();
-	const html = convert.toHtml(execLogText);
-	return ( <div className="terminal-container" dangerouslySetInnerHTML={{ __html: html }}></div> );
+
+/**
+ * Archive button: this component download the archive results of workflow
+ */
+
+const ArchiveButton = ({ workflowId, attemptId, downloadArchive }) => {
+  const [downloading, setDownloading] = useState(false);
+  const abortController = new AbortController(); // abort controller
+
+  const handleDownload = async () => {
+    try {
+      setDownloading(true);
+			// const signal = abortController.signal;
+			// await downloadArchive(workflowId, attemptId, signal);
+      await downloadArchive(workflowId, attemptId, abortController);
+    } catch (error) {
+      setDownloading(false);
+      console.error('Error fetching data:', error);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleCancelClick = () => {
+    abortController.abort();
+    setDownloading(false);
+  };
+
+  return (
+	<>
+    <Button
+			label={downloading ? 'Downloading...' : 'Download'}
+      icon={downloading ? 'pi pi-pause-circle' : 'pi pi-download'}
+      onClick={handleDownload}
+      disabled={downloading}
+			severity={downloading ? 'secondary' : 'help'}
+    >
+    {downloading && <ProgressSpinner strokeWidth="8" style={{width:'20px',height:'20px'}} animationDuration=".5s" />}
+    </Button>
+		{downloading && (<Button label="Stop" icon="pi pi-times" onClick={handleCancelClick} className="p-button-secondary p-button-outlined" />)}
+	</>
+  );
 };
 
 
 
 
-/* File viewer */
-/* Log viewer */
-const FileViewer = ({typeOutput, files, workflowId, attemptId, getWorkflowOutputs, expandedKeys, onToggle}) => {
+
+/**
+ * Terminal: this component displays the execution log
+ */
+const Terminal = ({ execLogText }) => {
+	// set default message if execLogText is empty
+	if (execLogText === '') { execLogText = 'Sorry. The log info is empty' }
+	const convert = new AnsiToHtml();
+	const html = convert.toHtml(execLogText);
+	const terminalRef = useRef(null);
+
+  // scroll to the bottom whenever execLogText changes
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [execLogText]);
+
+	return (
+		<div className="terminal-container" ref={terminalRef} dangerouslySetInnerHTML={{ __html: html }}></div> );
+};
+
+
+
+/**
+ * FileViewer: This component creates a TreeTable for the files of modules and logs.
+ */
+const FileViewer = ({typeOutput, files, expandedKeys, onToggle, workflowId, attemptId, getWorkflowOutputs, downloadOutput}) => {
 
 	const actionTemplate = (rowData) => {
 		if (rowData['data'].type !== 'folder') {
 			return (
 				<div className="action-button">
-					<Button type="button" icon="pi pi-download"></Button>
+					<Button type="button" icon="pi pi-download" onClick={() => downloadOutput(workflowId, attemptId, rowData)}></Button>
 				</div>
 			);
 		}
@@ -268,9 +363,10 @@ const FileViewer = ({typeOutput, files, workflowId, attemptId, getWorkflowOutput
 		);
 	};
 
+	// create the refresh and download button
+	// The download button only appears when the attempt execution of workflow has been completed.
 	const header = (
-		<div className="header-button justify-content-start flex flex-row-reverse flex-wrap gap-2">
-			<Button icon="pi pi-download" label="Download" severity="help" />
+		<div className="header-button justify-content-start">
 			<Button icon="pi pi-refresh" label="Reload" severity="warning" onClick={() => getWorkflowOutputs(workflowId, attemptId, typeOutput)}/>
 		</div>
 	);
@@ -287,16 +383,6 @@ const FileViewer = ({typeOutput, files, workflowId, attemptId, getWorkflowOutput
 	);
 };
 
-
-/* Log viewer */
-// const LogViewer = () => {
-// 	return (
-// 		<div className='log-viewer'>
-// 			<p>LOGSS!!! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo 
-// 				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-// 		</div>
-// 	);
-// };
 
 export default Workflow;
 
