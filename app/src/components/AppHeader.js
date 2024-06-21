@@ -15,7 +15,7 @@ const AppHeader = () => {
 
   const start = (
     <div className="flex align-items-center gap-2">
-      <img alt="logo" src="https://primefaces.org/cdn/primereact/images/logo.png" height="40" className="mr-2"></img>
+      <img alt="logo" src='logo512.png' height="40" className="mr-2"></img>
       <a href="/" className="p-menuitem-title">
         <span className="p-menuitem-text">next-Launcher</span>
       </a>
