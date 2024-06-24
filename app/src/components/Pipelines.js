@@ -15,7 +15,7 @@ import {
   showError,
 } from '../services/toastServices';
 import { workflowServices } from '../services/workflowServices';
-// import { datasetServices } from '../services/datasetServices';
+import { datasetServices } from '../services/datasetServices';
 
 /*
  * Constants
@@ -160,8 +160,8 @@ const LunchButton = ({ data }) => {
     // make the POST request to create a workflow
     try {
       if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
-        // const result = await datasetServices.create(dataPOST);
-        const result = {_id: '6679609b0a72b1ed9aa9de5d'};
+        const result = await datasetServices.create(dataPOST);
+        // const result = {_id: '6679609b0a72b1ed9aa9de5d'};
         if (result && result._id) {
           setDatasetId(result._id);
           setNavigate(true); // set state to trigger navigation
