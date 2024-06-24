@@ -15,10 +15,11 @@ import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import {
+  DescriptionParameter,
   FileParameterUpload,
   FolderParameterUpload,
   StringParameter,
-  DescriptionParameter
+  BooleanParameter
 } from './formParameters';
 import {
   showInfo,
@@ -40,7 +41,7 @@ const Parameters = (data) => {
   // Capture data from URL
   // const { workflowId, attemptId, datasetId } = useParams();
   const { workflowId, datasetId } = useParams();
-  const [ postDataDesc ] = useState({});
+  const [ postWorkflowData ] = useState({});
   const [ postData ] = useState({});
   const history = useHistory();
   const [navigate, setNavigate] = useState(false);
@@ -66,59 +67,95 @@ const Parameters = (data) => {
   // 1. Lauch Workflow
   const launchWorkflow = async () => {
 
+    // let postData_Test = {
+    //   "ReFrag results": {
+    //       "name": "--re_files",
+    //       "type": "directory-path",
+    //       "value": "666ac7dede575bad9e78a83b/re_files/*"
+    //   },
+    //   "Experimental table": {
+    //       "name": "--exp_table",
+    //       "type": "file-path",
+    //       "value": "666ac7dede575bad9e78a83b/exp_table.txt"
+    //   },
+    //   "Protein database": {
+    //       "name": "--database",
+    //       "type": "file-path",
+    //       "value": "666ac7dede575bad9e78a83b/database.fasta"
+    //   },
+    //   "Decoy prefix": {
+    //       "name": "--decoy_prefix",
+    //       "type": "string",
+    //       "value": "DECOY_"
+    //   },
+    //   "Parameter file": {
+    //       "name": "--params_file",
+    //       "type": "file-path",
+    //       "value": "666ac7dede575bad9e78a83b/params_file.ini"
+    //   },
+    //   "Sitelist file": {
+    //       "name": "--sitelist_file",
+    //       "type": "file-path",
+    //       "value": "666ac7dede575bad9e78a83b/sitelist_file.txt"
+    //   },
+    //   "Groupmaker file": {
+    //       "name": "--groupmaker_file",
+    //       "type": "file-path",
+    //       "value": "666ac7dede575bad9e78a83b/groupmaker_file.txt"
+    //   }
+    // };
+
     let postData_Test = {
-      "ReFrag results": {
-          "name": "--re_files",
-          "type": "directory-path",
-          "value": "666ac7dede575bad9e78a83b/re_files/*"
-      },
-      "Experimental table": {
-          "name": "--exp_table",
-          "type": "file-path",
-          "value": "666ac7dede575bad9e78a83b/exp_table.txt"
-      },
-      "Protein database": {
-          "name": "--database",
-          "type": "file-path",
-          "value": "666ac7dede575bad9e78a83b/database.fasta"
-      },
-      "Decoy prefix": {
-          "name": "--decoy_prefix",
-          "type": "string",
-          "value": "DECOY_"
-      },
-      "Parameter file": {
-          "name": "--params_file",
-          "type": "file-path",
-          "value": "666ac7dede575bad9e78a83b/params_file.ini"
-      },
-      "Sitelist file": {
-          "name": "--sitelist_file",
-          "type": "file-path",
-          "value": "666ac7dede575bad9e78a83b/sitelist_file.txt"
-      },
-      "Groupmaker file": {
-          "name": "--groupmaker_file",
-          "type": "file-path",
-          "value": "666ac7dede575bad9e78a83b/groupmaker_file.txt"
-      }
-    };
-    let postDataInputs = postData_Test;
-  // let postDataInputs = postData;
-  // console.log(postDataDesc);
-  // console.log(postDataInputs);
+        "MS data": {
+            "name": "--raw_files",
+            "type": "directory-path",
+            "value": "6679609b0a72b1ed9aa9de5d/raw_files/*"
+        },
+        "Protein database": {
+            "name": "--database",
+            "type": "file-path",
+            "value": "6679609b0a72b1ed9aa9de5d/database.fasta"
+        },
+        "Add decoys": {
+            "name": "--add_decoys",
+            "type": "boolean",
+            "value": "true"
+        },
+        "Decoy prefix": {
+            "name": "--decoy_prefix",
+            "type": "string",
+            "value": "DECOY_"
+        },
+        "MSFragger parameter file": {
+            "name": "--msf_params_file",
+            "type": "file-path",
+            "value": "6679609b0a72b1ed9aa9de5d/msf_params_file.params"
+        },
+        "Ion isotopic reporter file": {
+            "name": "--reporter_ion_isotopic",
+            "type": "file-path",
+            "value": "6679609b0a72b1ed9aa9de5d/reporter_ion_isotopic.tsv"
+        }
+  };
+  let postInputsData = postData_Test;
+  
+  // let postInputsData = postData;
+  // console.log(postWorkflowData);
+  console.log(postInputsData);
 
 
     // Check that all parameters are filled in and that the files are uploaded
     let allValid = true;
-    // Validate the description
-    if ( Object.keys(postDataDesc).length === 0 ) {
-      allValid = false;
-      showWarning('',`Please fill in the 'Workflow description' field.`);
+    // Validate all workflow fields: the object has to be full (not empty)
+    for (let key in postWorkflowData) {
+      if ( Object.keys(postWorkflowData[key]).length === 0 ) {
+        allValid = false;
+        showWarning('',`Please fill in the '${key}' field.`);
+      }
     }
     // Validate all input fields: the object has to be full (not empty)
-    for (let key in postDataInputs) {
-      if ( Object.keys(postDataInputs[key]).length === 0 ) {
+    for (let key in postInputsData) {
+      if ( Object.keys(postInputsData[key]).length === 0 ) {
         allValid = false;
         showWarning('',`Please fill in the '${key}' field.`);
       }
@@ -127,12 +164,12 @@ const Parameters = (data) => {
     // Launch process here
     if (allValid) {
       // Prepare the POST data
-      postDataInputs = { 'inputs': Object.values(postDataInputs) };
+      postInputsData = { 'inputs': Object.values(postInputsData) };
 
       // Edit the workflow with the description
-      const result_edit = await workflowServices.edit(workflowId, postDataDesc);
+      const result_edit = await workflowServices.edit(workflowId, postWorkflowData);
       if (result_edit) {
-        const result_launch = await workflowServices.launch(workflowId, postDataInputs);
+        const result_launch = await workflowServices.launch(workflowId, postInputsData);
         // const result_launch = { "status": 200, "message": "Workflow \"6667227e22cc1ec8df1e6c14\" was launched" }
         showInfo('', result_launch.message);
         setNavigate(true); // set state to trigger navigation
@@ -153,7 +190,7 @@ const Parameters = (data) => {
               </div>
               <div className="col-9">
                 <DescriptionParameter
-                  postData={postDataDesc}
+                  postData={postWorkflowData}
                 />
                 <Properties
                   definitions={schemaData.definitions}
@@ -256,6 +293,15 @@ const Properties = ({ definitions, datasetId, postData }) => {
       )}
       {property.format === 'string' && (
         <StringParameter
+          datasetId={datasetId}
+          property={property}
+          propertyFormat={property.format}
+          propertyKey={propertyKey}
+          postData={postData}
+        />
+      )}
+      {property.format === 'boolean' && (
+        <BooleanParameter
           datasetId={datasetId}
           property={property}
           propertyFormat={property.format}

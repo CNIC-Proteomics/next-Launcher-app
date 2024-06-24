@@ -4,7 +4,8 @@
 
 import React, {
   useState,
-  useEffect
+  useEffect,
+  useRef
 } from 'react';
 import {
   useHistory
@@ -37,6 +38,7 @@ const Workflows = () => {
   const columns = [
     { field: 'name', header: 'Name' },
     { field: 'description', header: 'Description' },
+    { field: 'author', header: 'Author' },
     { field: 'date_submitted', header: 'Date submitted' },
     { field: 'attempt', header: 'Attempt' },
     { field: 'status', header: 'Status' },
@@ -65,6 +67,13 @@ const Workflows = () => {
   // GET request with the workflows information
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
+	// ref to track if data has been fetched
+  const hasWkfData = useRef(false);
+	const wkfIntervalRef = useRef(null);
+	// interval duration in milliseconds (e.g., 5000 ms for 5 seconds)
+	const intervalDuration = 10000;
+
+
   useEffect(() => {
 
     // transform the data for the table
@@ -72,13 +81,14 @@ const Workflows = () => {
       let result = [];
 
       data.forEach(item => {
-        const { name, description, attempts } = item;
+        const { name, description, author, attempts } = item;
         attempts.forEach(attempt => {
           const { date_submitted, id, status } = attempt;
           result.push({
             name,
             description,
             'date_submitted': timestampToDate(date_submitted),
+            author,
             'attempt': id,
             status,
             'action': <ActionButton data={item} attempt={id} />
@@ -88,19 +98,38 @@ const Workflows = () => {
 
       return result;
     };
+
     // get the workflows
     const fetchWorkflows = async () => {
-        try {
-            const data = await workflowServices.get();
-            setWorkflows(transformData(data));
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching workflows:', error);
-            setLoading(false);
-        }
+      try {
+          const data = await workflowServices.get();
+          setWorkflows(transformData(data));
+          setLoading(false);
+      } catch (error) {
+          console.error('Error fetching workflows:', error);
+          setLoading(false);
+      }
     };
-    fetchWorkflows();
+
+    if (!hasWkfData.current) {
+      fetchWorkflows();
+      hasWkfData.current = true; // mark as fetched
+    }
+
+    // Set up the interval to update the log text
+    wkfIntervalRef.current = setInterval(() => {
+      fetchWorkflows();
+    }, intervalDuration);
+    
+    // Clean up the interval on component unmount
+    return () => {
+      if (wkfIntervalRef.current) {
+        clearInterval(wkfIntervalRef.current);
+      }
+    };
+
   }, []);
+
   
   // Develop the search filter in the datatable
   const [filters, setFilters] = useState({

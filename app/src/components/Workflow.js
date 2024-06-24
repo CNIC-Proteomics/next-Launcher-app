@@ -151,7 +151,7 @@ const WorkflowPanels = ({workflowId, attempt}) => {
 				setExecLogText(result.log);
 			}
 			else {
-				showError('', 'The log info was not obtained correctly');
+				// showError('', 'The log info was not obtained correctly');
 				console.error('The log info was not obtained correctly.');
 			}
 		} catch (error) {

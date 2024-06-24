@@ -8,6 +8,7 @@ import React, {
   useRef
 } from 'react';
 import { InputText } from 'primereact/inputtext';
+import { InputSwitch } from "primereact/inputswitch";
 import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
 import { Tag } from 'primereact/tag';
@@ -35,38 +36,56 @@ import { datasetServices } from '../services/datasetServices';
 /* Create section to string parameters */
 export const DescriptionParameter = ({ postData }) => {
 
-    const [textValue, setTextValue] = useState('');
+	// Declare constants
+	const [value, setValue] = useState('');
+	const [authorValue, setAuthorValue] = useState('');
 
-    // Function to handle the change event
-    const onChange = (e) => {
-        const newValue = e.target.value;
-        setTextValue(newValue);
-        // save the list of files into POST data for parent component
-        // create the input parameter path for workflow request
-        let valuePOST = newValue;
-        postData['description'] = valuePOST;
-    };
+	// Function to handle the change event
+	const onChangeAuthor = (e) => {
+		const newValue = e.target.value;
+		setAuthorValue(newValue);
+		// save the list of files into POST data for parent component
+		// create the input parameter path for workflow request
+		let valuePOST = newValue;
+		postData['author'] = valuePOST;
+	};
+	const onChange = (e) => {
+		const newValue = e.target.value;
+		setValue(newValue);
+		// save the list of files into POST data for parent component
+		// create the input parameter path for workflow request
+		let valuePOST = newValue;
+		postData['description'] = valuePOST;
+	};
 
-    return (
-        <div className="field">
-            <label htmlFor="workflow-description">Describe briefly your workflow:</label>
-            <InputText id="workflow-description" className="w-full" value={textValue} onChange={onChange}/>
-        </div>
-    );
+	return (
+	<>
+	<div className="field input-group">
+		<label htmlFor="workflow-author">Author who executes the workflow:</label>
+		<InputText id="workflow-author" className='w-3 ml-2' maxLength='25' value={authorValue} onChange={onChangeAuthor}/>
+	</div>
+	<div className="field">
+		<label htmlFor="workflow-description">Describe briefly your workflow:</label>
+		<InputText id="workflow-description" className="w-full" maxLength='138' value={value} onChange={onChange}/>
+	</div>
+	</>
+	);
 };
 
 
 
 
-/* Create section to string parameters */
+/**
+ * StringParameter: creates a section for the type parameter, string.
+ */
 export const StringParameter = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
 
-    const [textValue, setTextValue] = useState('');
+    const [value, setValue] = useState('');
 
     // Initialize the state with the prop value
     useEffect(() => {
         const newValue = property.default;
-        setTextValue(newValue);
+        setValue(newValue);
         // save the list of files into POST data for parent component
         // create the input parameter path for workflow request
         let valuePOST = newValue;
@@ -81,7 +100,7 @@ export const StringParameter = ({ datasetId, property, propertyFormat, propertyK
     // Function to handle the change event
     const onChange = (e) => {
         const newValue = e.target.value;
-        setTextValue(newValue);
+        setValue(newValue);
         // save the list of files into POST data for parent component
         // create the input parameter path for workflow request
         let valuePOST = newValue;
@@ -100,13 +119,70 @@ export const StringParameter = ({ datasetId, property, propertyFormat, propertyK
                 <InputText
                     id={property.title}
                     aria-describedby={`${property.title}-help`}
-                    value={textValue}
+                    value={value}
                     onChange={onChange}
                 />
             </div>
             <small id={`${property.title}-help`}>{property.help_text}</small>
         </div>
     );
+};
+
+
+
+
+
+/**
+ * BooleanParameter: creates a section for the type parameter, boolean.
+ */
+export const BooleanParameter = ({ datasetId, property, propertyFormat, propertyKey, postData }) => {
+	const [value, setValue] = useState(true);
+
+
+	// Initialize the state with the prop value
+	useEffect(() => {
+			const newValue = property.default;
+			setValue(newValue);
+			// save the list of files into POST data for parent component
+			// create the input parameter path for workflow request
+			let valuePOST = newValue;
+			let keyPOST = property.title;
+			postData[keyPOST] = {
+					'name': `--${propertyKey}`,
+					'type': propertyFormat,
+					'value': String(valuePOST) // convert boolean to string
+			};
+	}, [property, propertyFormat, propertyKey, postData]);
+
+	// Function to handle the change event
+	const onChange = (e) => {
+			const newValue = e.target.value;
+			setValue(newValue);
+			// save the list of files into POST data for parent component
+			// create the input parameter path for workflow request
+			let valuePOST = newValue;
+			let keyPOST = property.title;
+			postData[keyPOST] = {
+					'name': `--${propertyKey}`,
+					'type': propertyFormat,
+					'value': String(valuePOST) // convert boolean to string
+			};
+	};
+
+	return (
+			<div className="flex flex-column gap-2">
+					<label>{property.description}</label>
+					<div className='boolean-dataset p-inputgroup flex'>
+						<InputSwitch
+							id={property.title}
+							aria-describedby={`${property.title}-help`}
+							checked={value}
+							onChange={onChange}
+						/>
+					</div>
+					<small id={`${property.title}-help`}>{property.help_text}</small>
+			</div>
+	);
 };
 
 
