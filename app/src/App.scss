@@ -316,6 +316,12 @@
 .card-workflow .p-card-content {
   padding: 0.3rem 0;
 }
+.card-workflow .status {
+  padding-top: 10px;
+}
+.card-workflow .status * {
+  font-size: var(--nl-font-size);
+}
 
 /* Workflow panel */
 

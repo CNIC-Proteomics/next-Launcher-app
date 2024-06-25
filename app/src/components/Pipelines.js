@@ -41,8 +41,6 @@ const pipelineFiles = importAll(require.context('../../public/pipelines', false,
 
 // Function that transform the pipeline data
 const Pipelines = () => {
-  // const [datatable, setDatatable] = useState([]);
-  // const [loading, setLoading] = useState(true);
   const [loading] = useState(false);
 
   // Transform the data pipeline for the table
@@ -117,8 +115,8 @@ const LunchButton = ({ data }) => {
         name: data.title,
         pipeline: data.url,
         revision: data.revision,
-        profiles: 'guess',
-        author: 'guess'
+        profiles: 'cnic',
+        author: 'cnic'
       };
     } catch (error) {
       showError('', 'Processing the data for the POST request during workflow creation');
@@ -128,7 +126,7 @@ const LunchButton = ({ data }) => {
     try {
       if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
         const result = await workflowServices.create(dataPOST);
-        // const result = {_id: '6667227e22cc1ec8df1e6c14'};
+        // const result = {_id: '667996c52ddebdab5fdc8a30'};
         if (result && result._id) {
           setWorkflowId(result._id);
           setAttemptId(0);
@@ -161,7 +159,7 @@ const LunchButton = ({ data }) => {
     try {
       if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
         const result = await datasetServices.create(dataPOST);
-        // const result = {_id: '6679609b0a72b1ed9aa9de5d'};
+        // const result = {_id: '667996c52ddebdab5fdc8a31'};
         if (result && result._id) {
           setDatasetId(result._id);
           setNavigate(true); // set state to trigger navigation

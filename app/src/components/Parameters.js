@@ -105,41 +105,41 @@ const Parameters = (data) => {
     //   }
     // };
 
-    let postData_Test = {
-        "MS data": {
-            "name": "--raw_files",
-            "type": "directory-path",
-            "value": "6679609b0a72b1ed9aa9de5d/raw_files/*"
-        },
-        "Protein database": {
-            "name": "--database",
-            "type": "file-path",
-            "value": "6679609b0a72b1ed9aa9de5d/database.fasta"
-        },
-        "Add decoys": {
-            "name": "--add_decoys",
-            "type": "boolean",
-            "value": "true"
-        },
-        "Decoy prefix": {
-            "name": "--decoy_prefix",
-            "type": "string",
-            "value": "DECOY_"
-        },
-        "MSFragger parameter file": {
-            "name": "--msf_params_file",
-            "type": "file-path",
-            "value": "6679609b0a72b1ed9aa9de5d/msf_params_file.params"
-        },
-        "Ion isotopic reporter file": {
-            "name": "--reporter_ion_isotopic",
-            "type": "file-path",
-            "value": "6679609b0a72b1ed9aa9de5d/reporter_ion_isotopic.tsv"
-        }
-  };
-  let postInputsData = postData_Test;
+  //   let postData_Test = {
+  //     "MS data": {
+  //       "name": "--raw_files",
+  //       "type": "directory-path",
+  //       "value": "667996c52ddebdab5fdc8a31/raw_files/*"
+  //   },
+  //   "Protein database": {
+  //       "name": "--database",
+  //       "type": "file-path",
+  //       "value": "667996c52ddebdab5fdc8a31/database.fasta"
+  //   },
+  //   "Add decoys": {
+  //       "name": "--add_decoys",
+  //       "type": "boolean",
+  //       "value": "true"
+  //   },
+  //   "Decoy prefix": {
+  //       "name": "--decoy_prefix",
+  //       "type": "string",
+  //       "value": "DECOY_"
+  //   },
+  //   "MSFragger parameter file": {
+  //       "name": "--msf_params_file",
+  //       "type": "file-path",
+  //       "value": "667996c52ddebdab5fdc8a31/msf_params_file.params"
+  //   },
+  //   "Ion isotopic reporter file": {
+  //       "name": "--reporter_ion_isotopic",
+  //       "type": "file-path",
+  //       "value": "667996c52ddebdab5fdc8a31/reporter_ion_isotopic.tsv"
+  //   }
+  // };
+  // let postInputsData = postData_Test;
   
-  // let postInputsData = postData;
+  let postInputsData = postData;
   // console.log(postWorkflowData);
   console.log(postInputsData);
 
@@ -170,7 +170,6 @@ const Parameters = (data) => {
       const result_edit = await workflowServices.edit(workflowId, postWorkflowData);
       if (result_edit) {
         const result_launch = await workflowServices.launch(workflowId, postInputsData);
-        // const result_launch = { "status": 200, "message": "Workflow \"6667227e22cc1ec8df1e6c14\" was launched" }
         showInfo('', result_launch.message);
         setNavigate(true); // set state to trigger navigation
       }

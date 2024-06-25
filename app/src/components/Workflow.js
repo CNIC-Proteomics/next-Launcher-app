@@ -20,6 +20,7 @@ import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
+import { Message } from 'primereact/message';
 import AnsiToHtml from 'ansi-to-html';
 import classNames from 'classnames';
 import {
@@ -27,7 +28,7 @@ import {
 } from '../services/toastServices';
 import { workflowServices } from '../services/workflowServices';
 import { outputServices } from '../services/outputServices';
-import * as globalServices from '../services/globalServices';
+// import * as globalServices from '../services/globalServices';
 
 
   
@@ -40,10 +41,17 @@ const Workflow = () => {
 	const { workflowId, attemptId } = useParams();
 	
 	// create constants
+	const [loading, setLoading] = useState(true);
   const [workflow, setWorkflow] = useState({});
-	const [attempt, setAttempt] = useState({});
+	// const [attempt, setAttempt] = useState({});
+  const [execLogText, setExecLogText] = useState('');
+  const [attemptStatus, setAttemptStatus] = useState('');
 	// create references to track if data has been fetched
 	const hasWorkflowData = useRef(false);
+	const hasLogData = useRef(false);
+	const logIntervalRef = useRef(null);
+	// interval duration in milliseconds (e.g., 5000 ms for 5 seconds)
+	const intervalDuration = 5000;
 
   // get the workflow data
   useEffect(() => {
@@ -54,31 +62,90 @@ const Workflow = () => {
 				const result = await workflowServices.get(workflowId);
 				if (result) {
 					setWorkflow(result);
-					// get the status of the attempt execution
-					setAttempt(globalServices.getAttemptById(result, attemptId));
+					setLoading(false);
+					// set the info of attempt execution
+					// setAttempt(globalServices.getAttemptById(result, attemptId));
 				}
 				else {
 					showError('', 'The workflow info was not obtained correctly');
 					console.error('The workflow info was not obtained correctly.');
 				}
 			} catch (error) {
+				setLoading(false);
 				console.error('Error getting workflow info:', error);
 			}
 		};
+		// make the GET request to get the log
+		const getAttemptLog = async (workflowId, attemptId) => {
+			try {
+				const result = await workflowServices.log(workflowId, attemptId);
+				if (result && result.log) {
+					setExecLogText(result.log);
+					setLoading(false);
 
-		if (workflowId) {
+					// check the status of attempt execution
+					const newStatus = result.status;
+					setAttemptStatus(newStatus);
+
+					// stop the loop if status is 'completed' or 'failed'
+					if (newStatus === 'completed' || newStatus === 'failed') {
+						if (logIntervalRef.current) {
+							clearInterval(logIntervalRef.current);
+							logIntervalRef.current = null;
+						}
+					}
+				}
+				else {
+					// showError('', 'The log info was not obtained correctly');
+					console.error('The log info was not obtained correctly.');
+				}
+			} catch (error) {
+				console.error('Error getting log:', error);
+			}
+		};
+
+		if (workflowId && attemptId) {
+			// get the workflow data
 			if (!hasWorkflowData.current) {
 				getWorkflowData(workflowId);
 				hasWorkflowData.current = true; // mark as fetched
 			}
+			// get the log of attempt execution
+			if (!hasLogData.current) {
+				getAttemptLog(workflowId, attemptId);
+				hasLogData.current = true; // mark as fetched
+			}
+
+			// set up the interval to update the log text
+			logIntervalRef.current = setInterval(() => {
+				getAttemptLog(workflowId, attemptId);
+			}, intervalDuration);
+
+			// clean up the interval on component unmount
+			return () => {
+				if (logIntervalRef.current) {
+					clearInterval(logIntervalRef.current);
+				}
+			};
+
 		}
+
 	}, [workflowId, attemptId]);
 
+	// Render
 	return (
-	<>
-		<WorkflowCard workflow={workflow} />
-		<WorkflowPanels workflowId={workflowId} attempt={attempt} />
-	</>
+		<div className='report-workflow'>
+		{loading ? (
+			<div className="flex justify-content-center flex-wrap">
+				<ProgressSpinner />
+			</div>
+		) : (
+		<>
+			<WorkflowCard workflow={workflow} status={attemptStatus} />
+			<WorkflowPanels workflowId={workflowId} attemptId={attemptId} attemptStatus={attemptStatus} execLogText={execLogText} />
+		</>
+		)}
+		</div>
 	);
 };
 
@@ -88,14 +155,23 @@ const Workflow = () => {
 /**
  * Component that creates the workflow card with the name, description,...
  */
-const WorkflowCard = ({workflow}) => {
-	return (
-		<div className="card-workflow">
-			<Card title={workflow['name']}>
-				<small className="m-0">{workflow['description']}</small>
-			</Card>
-		</div>
-	);
+const WorkflowCard = ({workflow, status}) => {
+  const severity = {
+    running: 'info',
+    completed: 'success',
+    failed: 'error',
+  }[status];
+
+  return (
+    <div className="card-workflow">
+      <Card title={workflow.name}>
+        <small className="m-0">{workflow.description}</small>
+        <div className="status">
+          <Message severity={severity} text={status} />
+        </div>
+      </Card>
+    </div>
+  );
 };
 
 
@@ -104,60 +180,27 @@ const WorkflowCard = ({workflow}) => {
 /** 
  * Component that creates the workflow Panels: Execution log, Module file viewer, Log file viewer
  */
-const WorkflowPanels = ({workflowId, attempt}) => {
+const WorkflowPanels = ({workflowId, attemptId, attemptStatus, execLogText}) => {
 	// create constants
-  const [execLogText, setExecLogText] = useState('');
   const [moduleFiles, setModuleFiles] = useState({});
 	const [logFiles, setLogFiles] = useState({});
   const [expandedModuleKeys, setExpandedModuleKeys] = useState({});
   const [expandedLogKeys, setExpandedLogKeys] = useState({});
 	// ref to track if data has been fetched
-	const hasLogData = useRef(false);
-	const logIntervalRef = useRef(null);
-	// interval duration in milliseconds (e.g., 5000 ms for 5 seconds)
-	const intervalDuration = 5000;
-  // const [activeIndex, setActiveIndex] = useState(0);
+	const hasOutputData = useRef(false);
 
   // get the request data
   useEffect(() => {
-		if (workflowId && attempt.id) {
-			if (!hasLogData.current) {
-				getWorkflowLog(workflowId, attempt.id);
-				getWorkflowOutputs(workflowId, attempt.id, 'modules');
-				getWorkflowOutputs(workflowId, attempt.id, 'logs');
-				hasLogData.current = true; // mark as fetched
+		if (workflowId && attemptId) {
+			// get the outputs of attempt execution
+			if (!hasOutputData.current) {
+				getWorkflowOutputs(workflowId, attemptId, 'modules');
+				getWorkflowOutputs(workflowId, attemptId, 'logs');
+				hasOutputData.current = true; // mark as fetched
 			}
-
-			// Set up the interval to update the log text
-			logIntervalRef.current = setInterval(() => {
-				getWorkflowLog(workflowId, attempt.id);
-			}, intervalDuration);
-
-			// Clean up the interval on component unmount
-			return () => {
-				if (logIntervalRef.current) {
-					clearInterval(logIntervalRef.current);
-				}
-			};
-
 		}
-	}, [workflowId, attempt.id]);
+	}, [workflowId, attemptId]);
 
-	// Make the GET request to get the log
-	const getWorkflowLog = async (workflowId, attemptId) => {
-		try {
-			const result = await workflowServices.log(workflowId, attemptId);
-			if (result && result.log) {
-				setExecLogText(result.log);
-			}
-			else {
-				// showError('', 'The log info was not obtained correctly');
-				console.error('The log info was not obtained correctly.');
-			}
-		} catch (error) {
-			console.error('Error getting log:', error);
-		}
-	};
 
 	// Make the GET request to get the outputs
 	// Select the type of output: modules, module logs
@@ -183,7 +226,6 @@ const WorkflowPanels = ({workflowId, attempt}) => {
 		}
 	};
 
-
 	// Download the archive file for an attempt execution of a workflow
 	const downloadArchive = async (workflowId, attemptId, cancelToken) => {
 		try {
@@ -193,7 +235,6 @@ const WorkflowPanels = ({workflowId, attempt}) => {
 			console.error('Error getting archive:', error);
 		}
 	};
-
 
 	// Download an output file for an attempt execution of a workflow
 	const downloadOutput = async (workflowId, attemptId, output) => {
@@ -216,12 +257,12 @@ const WorkflowPanels = ({workflowId, attempt}) => {
     setExpandedLogKeys(e.value);
   };
 
+	// Render
 	return (
 		<div className="panel-workflow flex justify-content-center flex flex flex-row-reverse gap-2">
 			<div className="panel-workflow-download-button">
-				{ attempt.status === 'completed' ? (<ArchiveButton workflowId={workflowId} attemptId={attempt.id} downloadArchive={downloadArchive} />) : (<></>) }
+				{ attemptStatus === 'completed' ? (<ArchiveButton workflowId={workflowId} attemptId={attemptId} downloadArchive={downloadArchive} />) : (<></>) }
 			</div>
-			{/* <TabView activeIndex={activeIndex}  onTabChange={onTabChange}> */}
 			<TabView>
 					<TabPanel header="Execution log" >
 						<Terminal execLogText={execLogText} />
@@ -234,7 +275,7 @@ const WorkflowPanels = ({workflowId, attempt}) => {
 								expandedKeys={expandedModuleKeys}
 								onToggle={handleModuleExpand}
 								workflowId={workflowId}
-								attemptId={attempt.id}
+								attemptId={attemptId}
 								getWorkflowOutputs={getWorkflowOutputs}
 								downloadOutput={downloadOutput}
 							/>
@@ -248,7 +289,7 @@ const WorkflowPanels = ({workflowId, attempt}) => {
 								expandedKeys={expandedLogKeys}
 								onToggle={handleLogExpand}
 								workflowId={workflowId}
-								attemptId={attempt.id}
+								attemptId={attemptId}
 								getWorkflowOutputs={getWorkflowOutputs}
 								downloadOutput={downloadOutput}
 							/>
@@ -274,8 +315,6 @@ const ArchiveButton = ({ workflowId, attemptId, downloadArchive }) => {
   const handleDownload = async () => {
     try {
       setDownloading(true);
-			// const signal = abortController.signal;
-			// await downloadArchive(workflowId, attemptId, signal);
       await downloadArchive(workflowId, attemptId, abortController);
     } catch (error) {
       setDownloading(false);
@@ -285,10 +324,10 @@ const ArchiveButton = ({ workflowId, attemptId, downloadArchive }) => {
     }
   };
 
-  const handleCancelClick = () => {
-    abortController.abort();
-    setDownloading(false);
-  };
+//   const handleCancelClick = () => {
+//     abortController.abort();
+//     setDownloading(false);
+//   };
 
   return (
 	<>
@@ -301,7 +340,7 @@ const ArchiveButton = ({ workflowId, attemptId, downloadArchive }) => {
     >
     {downloading && <ProgressSpinner strokeWidth="8" style={{width:'20px',height:'20px'}} animationDuration=".5s" />}
     </Button>
-		{downloading && (<Button label="Stop" icon="pi pi-times" onClick={handleCancelClick} className="p-button-secondary p-button-outlined" />)}
+		{/* {downloading && (<Button label="Stop" icon="pi pi-times" onClick={handleCancelClick} className="p-button-secondary p-button-outlined" />)} */}
 	</>
   );
 };
