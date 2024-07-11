@@ -2,9 +2,10 @@
  * Declare the constants
 */
 
-export const BACKEND_BASE = 'http://localhost';
-// export const BACKEND_BASE = 'http://10.142.33.54';
-export const BACKEND_PORT = 8080;
+
+export const HOST_IP = process.env.HOST_IP || 'localhost';
+export const BACKEND_BASE = `http://${HOST_IP}`;
+export const BACKEND_PORT = process.env.PORT_APP || 8080;
 export const BACKEND_URL = `${BACKEND_BASE}:${BACKEND_PORT}`;
 
 
