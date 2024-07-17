@@ -1,5 +1,5 @@
-# next-Launcher
-------------------------------
+# next-Launcher-app
+
 Web application for the next-Launcher system
 
 
