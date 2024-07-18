@@ -1,8 +1,8 @@
 {
 "$schema": "http://json-schema.org/draft-07/schema",
 "$id": "https://raw.githubusercontent.com/CNIC-Proteomics/nf-PTM-compass/main/nextflow_schema.json",
-"title": "PTM-compass",
-"description": "Nextflow for the PTM-compass pipeline.",
+"title": "PTM-compass:RefMod",
+"description": "Nextflow for the PTM-compass pipeline using RefMod results as input",
 "url": "https://github.com/CNIC-Proteomics/nf-PTM-compass",
 "revision": "0.1.0",
 "icon": "",
@@ -15,16 +15,16 @@
         "fa_icon": "pi pi-box",
         "description": "Inputs and outputs required for the pipeline",
         "required": [
-            "re_files",
+            "refmod_files",
             "exp_table",
             "database",
             "decoy_prefix",
             "outdir"
         ],
         "properties": {
-            "re_files": {
-                "title": "ReFrag results",
-                "description": "ReFrag result files",
+            "refmod_files": {
+                "title": "RefMod results",
+                "description": "RefMod result files",
                 "help_text": "Under construction...",
                 "fa_icon": "pi pi-folder",
                 "type": "string",
