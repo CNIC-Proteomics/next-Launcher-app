@@ -10,7 +10,6 @@ import React, {
 import {
   useParams,
 } from 'react-router-dom';
-// import axios from 'axios';
 import {
   TabView,
   TabPanel
@@ -23,6 +22,10 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import { Message } from 'primereact/message';
 import AnsiToHtml from 'ansi-to-html';
 import classNames from 'classnames';
+
+import {
+	CHECK_WORKFLOWS
+} from '../constants';
 import {
   showError,
 } from '../services/toastServices';
@@ -50,9 +53,7 @@ const Workflow = () => {
 	const hasWorkflowData = useRef(false);
 	const hasLogData = useRef(false);
 	const logIntervalRef = useRef(null);
-	// interval duration in milliseconds (e.g., 5000 ms for 5 seconds)
-	const intervalDuration = 5000;
-
+	
   // get the workflow data
   useEffect(() => {
 
@@ -119,7 +120,7 @@ const Workflow = () => {
 			// set up the interval to update the log text
 			logIntervalRef.current = setInterval(() => {
 				getAttemptLog(workflowId, attemptId);
-			}, intervalDuration);
+			}, CHECK_WORKFLOWS);
 
 			// clean up the interval on component unmount
 			return () => {

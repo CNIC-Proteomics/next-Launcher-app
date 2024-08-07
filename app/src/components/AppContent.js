@@ -13,6 +13,9 @@ import {
 } from '../services/toastServices';
 import NavigationTabs from './NavigationTabs';
 import MainPage from './MainPage';
+import Login from './Login';
+import Register from './Register';
+import RoleBasedRoute from './RoleBasedRoute';
 import Pipelines from './Pipelines';
 import Parameters from './Parameters';
 import Workflows from './Workflows';
@@ -26,7 +29,7 @@ import Workflow from './Workflow';
 const AppDescription = () => {
   return (
     <div className='app-description'>
-      Web server for the execution of Nextflow pipelines
+      {/* Web server for the execution of Nextflow pipelines */}
     </div>
   );
 }
@@ -41,9 +44,11 @@ const AppContent = () => {
           <NavigationTabs />
         </div>
         <Switch>
-          <Route path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} />
-          <Route path="/workflows/:workflowId/:attemptId" component={Workflow} />
-          <Route path="/workflows" component={Workflows} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+          <RoleBasedRoute path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} allowedRoles={['guess','admin']} />
+          <RoleBasedRoute path="/workflows/:workflowId/:attemptId" component={Workflow} allowedRoles={['guess','admin']} />
+          <RoleBasedRoute path="/workflows" component={Workflows} allowedRoles={['guess','admin']} />
           <Route path="/pipelines" component={Pipelines} />
           <Route path="/" exact component={MainPage} />
         </Switch>

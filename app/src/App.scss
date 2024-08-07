@@ -16,7 +16,7 @@
 }
 
 .app-header-container .p-menubar {
-  padding: 0.2rem;
+  padding: 0.2rem 0.4rem;
   border: 0px;
   border-bottom: 1px solid rgb(13, 53, 111);
   border-radius: 0px;
@@ -40,6 +40,15 @@
   text-decoration: underline;
 }
 
+.app-header-container .p-avatar * {
+  background: gray;
+}
+
+.menu-avatar {
+  font-size: var(--nl-font-size);
+}
+
+
 // Disable responsive for menubar
 @media screen and (max-width: 960px) {
   .p-menubar .p-menubar-button {
@@ -60,6 +69,8 @@
     width: unset;
   }
 }
+
+
 
 /*
  * APP TOASTER
@@ -124,6 +135,46 @@
 
 .app-navigation-tabs .p-tabmenuitem.p-highlight .p-menuitem-link, .app-navigation-tabs .p-menuitem-link:focus {
   color: var(--nl-link-hover-color);
+}
+
+
+/*
+ * NAVIGATION TABS
+ */
+
+.main-content {
+  margin: 20px 20px;
+  min-width: 900px;
+}
+
+.main-content * {
+  font-size: var(--nl-font-size);
+}
+
+/*
+ * LOGIN / REGISTER
+ */
+
+/* general styles */
+
+.login-content,
+.register-content {
+  margin: 20px 20px;
+  min-width: 900px;
+}
+
+.login-content *,
+.register-content * {
+  font-size: var(--nl-font-size);
+}
+
+.login-content .p-button,
+.register-content .p-button {
+  padding: 6px;
+}
+
+.p-password-panel * {
+  font-size: var(--nl-font-size);
 }
 
 

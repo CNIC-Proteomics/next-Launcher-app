@@ -38,17 +38,8 @@ export const DescriptionParameter = ({ postData }) => {
 
 	// Declare constants
 	const [value, setValue] = useState('');
-	const [authorValue, setAuthorValue] = useState('');
 
 	// Function to handle the change event
-	const onChangeAuthor = (e) => {
-		const newValue = e.target.value;
-		setAuthorValue(newValue);
-		// save the list of files into POST data for parent component
-		// create the input parameter path for workflow request
-		let valuePOST = newValue;
-		postData['author'] = valuePOST;
-	};
 	const onChange = (e) => {
 		const newValue = e.target.value;
 		setValue(newValue);
@@ -60,10 +51,6 @@ export const DescriptionParameter = ({ postData }) => {
 
 	return (
 	<>
-	<div className="field input-group">
-		<label htmlFor="workflow-author">Author who executes the workflow:</label>
-		<InputText id="workflow-author" className='w-3 ml-2' maxLength='25' value={authorValue} onChange={onChangeAuthor}/>
-	</div>
 	<div className="field">
 		<label htmlFor="workflow-description">Describe briefly your workflow:</label>
 		<InputText id="workflow-description" className="w-full" maxLength='138' value={value} onChange={onChange}/>

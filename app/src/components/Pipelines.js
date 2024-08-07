@@ -4,16 +4,19 @@
 
 import React, {
   useState,
-  useEffect
+  useEffect,
+  useContext
 } from 'react';
 import { useHistory } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
+
 import {
   showError,
 } from '../services/toastServices';
+import { userServices } from '../services/userServices';
 import { workflowServices } from '../services/workflowServices';
 import { datasetServices } from '../services/datasetServices';
 
@@ -41,6 +44,9 @@ const pipelineFiles = importAll(require.context('../../public/pipelines', false,
 
 // Function that transform the pipeline data
 const Pipelines = () => {
+  
+  // Declare variables
+  const { auth } = useContext(userServices);
   const [loading] = useState(false);
 
   // Transform the data pipeline for the table
@@ -50,7 +56,7 @@ const Pipelines = () => {
     title: data.title,
     description: data.description,
     url: <UrlLink url={data.url} />,
-    action: <LunchButton data={data} />
+    action: <LunchButton data={data} auth={auth} />
   });
   const [datatable] = useState(pipelineFiles.map(convertDataToTable));
 
@@ -81,7 +87,7 @@ const Pipelines = () => {
 };
 
 // Lunch Button that redirect to "Parameters"
-const LunchButton = ({ data }) => {
+const LunchButton = ({ data, auth }) => {
   const history = useHistory();
   const [navigate, setNavigate] = useState(false);
   const [workflowId, setWorkflowId] = useState({});
@@ -112,11 +118,11 @@ const LunchButton = ({ data }) => {
     let dataPOST = {};
     try {
       dataPOST = {
+        author: auth.username,
+        profiles: auth.role,
         name: data.title,
         pipeline: data.url,
-        revision: data.revision,
-        profiles: 'cnic',
-        author: 'cnic'
+        revision: data.revision
       };
     } catch (error) {
       showError('', 'Processing the data for the POST request during workflow creation');

@@ -22,6 +22,10 @@ Run the web application in a specific PORT:
 PORT=3001 npm start
 ```
 
+Development mode:
+```
+PORT=3001 REACT_APP_PORT_CORE=8081 npm start
+```
 
 ## Build the application
 

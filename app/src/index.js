@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom/client';
 
 // primereact
 import 'primeflex/primeflex.css'; // PrimeFlex is imported
-import "primereact/resources/themes/lara-light-cyan/theme.css"; // Theme style
 import 'primereact/resources/primereact.min.css'; // PrimeReact styles
 import 'primeicons/primeicons.css'; // PrimeIcons
 

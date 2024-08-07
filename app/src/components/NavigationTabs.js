@@ -32,6 +32,10 @@ const NavigationTabs = () => {
     label: 'Workflows',
     icon: 'pi pi-list',
     to: '/workflows'
+  },{
+    label: 'Datasets',
+    icon: 'pi pi-database',
+    to: '/datasets'
   }];
 
   useEffect(() => {

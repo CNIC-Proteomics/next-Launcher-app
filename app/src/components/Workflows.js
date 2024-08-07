@@ -21,6 +21,11 @@ import { Message } from 'primereact/message';
 import {
   FilterMatchMode,
 } from 'primereact/api';
+
+import {
+  CHECK_WORKFLOWS
+} from '../constants';
+
 import { workflowServices } from '../services/workflowServices';
 
 
@@ -33,6 +38,9 @@ import { workflowServices } from '../services/workflowServices';
 
 // Function that transform the pipeline data
 const Workflows = () => {
+  
+  // Define history
+  const history = useHistory();
 
   // Define header
   const columns = [
@@ -70,8 +78,6 @@ const Workflows = () => {
 	// ref to track if data has been fetched
   const hasWkfData = useRef(false);
 	const wkfIntervalRef = useRef(null);
-	// interval duration in milliseconds (e.g., 5000 ms for 5 seconds)
-	const intervalDuration = 10000;
 
 
   useEffect(() => {
@@ -87,8 +93,8 @@ const Workflows = () => {
           result.push({
             name,
             description,
-            'date_submitted': timestampToDate(date_submitted),
             author,
+            'date_submitted': timestampToDate(date_submitted),
             'attempt': id,
             status,
             'action': <ActionButton data={item} attempt={id} />
@@ -103,6 +109,10 @@ const Workflows = () => {
     const fetchWorkflows = async () => {
       try {
           const data = await workflowServices.get();
+          if (data === null) {
+            history.push('/login');
+            return;
+          }
           setWorkflows(transformData(data));
           setLoading(false);
       } catch (error) {
@@ -119,7 +129,7 @@ const Workflows = () => {
     // Set up the interval to update the log text
     wkfIntervalRef.current = setInterval(() => {
       fetchWorkflows();
-    }, intervalDuration);
+    }, CHECK_WORKFLOWS);
     
     // Clean up the interval on component unmount
     return () => {
@@ -128,7 +138,7 @@ const Workflows = () => {
       }
     };
 
-  }, []);
+  }, [history]);
 
   
   // Develop the search filter in the datatable

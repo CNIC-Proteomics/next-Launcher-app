@@ -13,12 +13,22 @@ import {
 
 export class datasetServices {
 
+  // get token
+  static getToken() {
+    return localStorage.getItem('token');
+  }
+
   // create a dataset instance
   static async create(data) {
+
+    const token = this.getToken();
+    if (!token) return null;
+
     try {
       const response = await fetch(`${BACKEND_URL}/api/datasets/0`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
@@ -40,12 +50,17 @@ export class datasetServices {
 
   // upload a single file
   static async up(id, format, parameter, file, onProgress) {
+
+    const token = this.getToken();
+    if (!token) return null;
+
     const formData = new FormData();
     formData.append('file', file);
 
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${BACKEND_URL}/api/datasets/${id}/${format}/${parameter}/upload`);
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`); // set the Authorization header
 
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
@@ -72,6 +87,10 @@ export class datasetServices {
 
   // upload multiple files
   static async upload(id, format, parameter, files, onProgress) {
+
+    const token = this.getToken();
+    if (!token) return null;
+
     const totalFiles = files.length;
     let completedFiles = 0;
 

@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { AuthProvider } from './services/userServices';
 import AppHeader from './components/AppHeader';
 import AppContent from './components/AppContent';
 
@@ -17,10 +18,12 @@ import AppContent from './components/AppContent';
 function App() {
   return (
     <div className="App">
-      <Router>
-        <AppHeader />
-        <AppContent />
-      </Router>
+      <AuthProvider>
+        <Router>
+          <AppHeader />
+          <AppContent />
+        </Router>
+      </AuthProvider>
     </div>
   );
 }
