@@ -5,7 +5,7 @@
 import React, {
   useState,
   useEffect,
-  useContext
+  useContext,
 } from 'react';
 import { useHistory } from 'react-router-dom';
 import { DataTable } from 'primereact/datatable';
@@ -50,34 +50,23 @@ const Pipelines = () => {
   const [loading, setLoading] = useState(false);
   const [datatable, setDatatable] = useState([]);
 
-  // If auth is still null, render a loading spinner or some fallback UI
-  // useEffect(() => {
-  //   if (auth !== null) {
-  //     const data = pipelineFiles.map(convertDataToTable);
-  //     setDatatable(data);
-  //     setLoading(false);
-  //   }
-  // }, [auth]);
-  
   // Perform actions outside the main scope
   useEffect(() => {
+    // transform the data pipeline for the table
+    const convertDataToTable = (data) => ({
+      id: data.$id,
+      status: <StatusIcon status={data.status} />,
+      title: data.title,
+      description: data.description,
+      url: <UrlLink url={data.url} />,
+      action: <LunchButton data={data} auth={auth} />
+    });
+
     const data = pipelineFiles.map(convertDataToTable);
     setDatatable(data);
     setLoading(false);
-  }, []);
+  }, [auth]);
   
-
-  // Transform the data pipeline for the table
-  const convertDataToTable = (data) => ({
-    id: data.$id,
-    status: <StatusIcon status={data.status} />,
-    title: data.title,
-    description: data.description,
-    url: <UrlLink url={data.url} />,
-    action: <LunchButton data={data} auth={auth} />
-  });
-  // const [datatable] = useState(pipelineFiles.map(convertDataToTable));
-
   // Define header
   const columns = [
     { field: 'status', header: 'Status' },
@@ -107,10 +96,10 @@ const Pipelines = () => {
 // Lunch Button that redirect to "Parameters"
 const LunchButton = ({ data, auth }) => {
   const history = useHistory();
-  const [navigate, setNavigate] = useState(false);
-  const [workflowId, setWorkflowId] = useState({});
+  const [workflowId, setWorkflowId] = useState('');
   const [attemptId, setAttemptId] = useState(0);
-  const [datasetId, setDatasetId] = useState({});
+  const [datasetId, setDatasetId] = useState('');
+  const [navigate, setNavigate] = useState(false);
   
   // Navigate to parameter form
   useEffect(() => {

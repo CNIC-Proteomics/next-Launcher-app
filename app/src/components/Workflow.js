@@ -398,7 +398,7 @@ const FileViewer = ({typeOutput, files, expandedKeys, onToggle, workflowId, atte
 		});
 		return (
 		<button type="button" className="p-treetable-toggler p-link" style={options.buttonStyle} tabIndex={-1} onClick={options.onClick}>
-			<span className={iconClassName} aria-hidden="true"></span>
+			<span className={iconClassName}></span>
 		</button>
 		);
 	};
