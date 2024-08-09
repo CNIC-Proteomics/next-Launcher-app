@@ -1,11 +1,12 @@
 ___
 ## 0.1.2
 ```
-DATE: 2024_07
+DATE: 2024_08
 ```
 
 ### Highlights
 
++ Adding the authentication
 
 ### Changes in detail
 
