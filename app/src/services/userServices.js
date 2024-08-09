@@ -31,56 +31,41 @@ const AuthProvider = ({ children }) => {
   const [success, setSuccess] = useState(null);
 
   // Chech the authentication
-  // const checkAuth = () => {
-  //   const token = localStorage.getItem('token');
-  //   if (token) {
-  //     const decodedToken = jwtDecode(token);
-  //     if (decodedToken.exp * 1000 > Date.now()) {
-  //       // save auth again
-  //       setAuth({ token: token, username: decodedToken.username, role: decodedToken.role });
-  //     } else {
-  //       // token has expired
-  //       localStorage.removeItem('token');
-  //       setAuth(null);
-  //     }
-  //   } else {
-  //     // token has expired
-  //     localStorage.removeItem('token');
-  //     setAuth(null);
-  //   }
-  // };
   const checkAuth = useCallback(async () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (token) {
       const decodedToken = jwtDecode(token);
-      if (decodedToken.exp * 1000 > Date.now()) {
-        // save auth again
-        setAuth({ token: token, username: decodedToken.username, role: decodedToken.role });
-      } else {
-        // token has expired
-        localStorage.removeItem('token');
+      // check if token has expired
+      if (decodedToken.exp * 1000 > Date.now()) { // not expired
+        const newAuth = { token: token, username: decodedToken.username, role: decodedToken.role };
+        // update state only if the auth object has changed
+        if (JSON.stringify(auth) !== JSON.stringify(newAuth)) {
+          setAuth(newAuth);
+        }
+      } else { // token has expired
+        sessionStorage.removeItem('token');
         setAuth(null);
       }
-    } else {
-      // token has expired
-      localStorage.removeItem('token');
+    } else { // token has expired
+      sessionStorage.removeItem('token');
       setAuth(null);
     }
-  }, []);
+  }, [auth]);
 
   // Perform actions outside the main scope
   useEffect(() => {
-    checkAuth();
-    const interval = setInterval(checkAuth, CHECK_AUTH);
+    checkAuth(); // check auth when the component is mounted
+    const interval = setInterval(checkAuth, CHECK_AUTH); // periodically check auth status
     return () => clearInterval(interval); // cleanup on unmount
   }, [checkAuth]);
 
-  
+
   /**
    * "login" sets the authentication of the user.
    * @param {String} username - The username.
    * @param {String} password - The password.
    * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
    */
   const login = async (username, password) => {
     try {
@@ -99,7 +84,7 @@ const AuthProvider = ({ children }) => {
       
       // save tokens
       const decodedToken = jwtDecode(result.token);
-      localStorage.setItem('token', result.token);
+      sessionStorage.setItem('token', result.token);
       
       // save variables
       setAuth({ token: result.token, username: decodedToken.username, role: decodedToken.role });
@@ -119,6 +104,7 @@ const AuthProvider = ({ children }) => {
    * @param {String} username - The username.
    * @param {String} password - The password.
    * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
    */
   const register = async (username, password) => {
     try {
@@ -148,10 +134,10 @@ const AuthProvider = ({ children }) => {
   };
 
   /**
-   * "logout" the user.
+   * "logout" clears all values in session storage and removes the authentication variable.
    */
   const logout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.clear();
     setAuth(null);
   };
 

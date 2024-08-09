@@ -14,6 +14,11 @@ import {
 import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
+
+import {
+  showInfo,
+  showWarning
+} from '../services/toastServices';
 import {
   DescriptionParameter,
   FileParameterUpload,
@@ -21,10 +26,6 @@ import {
   StringParameter,
   BooleanParameter
 } from './formParameters';
-import {
-  showInfo,
-  showWarning
-} from '../services/toastServices';
 import { workflowServices } from '../services/workflowServices';
 
 
@@ -141,7 +142,7 @@ const Parameters = (data) => {
   
   let postInputsData = postData;
   // console.log(postWorkflowData);
-  console.log(postInputsData);
+  // console.log(postInputsData);
 
 
     // Check that all parameters are filled in and that the files are uploaded
@@ -180,6 +181,7 @@ const Parameters = (data) => {
   // Pipeline schema
   if ( data.location.state.schema ) {
     const schemaData = data.location.state.schema;
+    const schemaTitle = schemaData.title;  
     return (
       <>
         <div className='parameters'>
@@ -189,6 +191,7 @@ const Parameters = (data) => {
               </div>
               <div className="col-9">
                 <DescriptionParameter
+                  title={schemaTitle}
                   postData={postWorkflowData}
                 />
                 <Properties

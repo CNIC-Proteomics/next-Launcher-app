@@ -16,8 +16,8 @@ import { Message } from 'primereact/message';
 import { Password } from 'primereact/password';
 
 import {
-  GUESS_USER,
-  GUESS_PWD
+  GUEST_USER,
+  GUEST_PWD
 } from '../constants';
 import { userServices } from '../services/userServices';
 
@@ -56,9 +56,9 @@ const Login = () => {
     }
   };
 
-  // Login guess user
+  // Login guest user
   const handleGuestLogin = async (e) => {
-    await login(GUESS_USER, GUESS_PWD);
+    await login(GUEST_USER, GUEST_PWD);
     history.push('/pipelines');
   };
 

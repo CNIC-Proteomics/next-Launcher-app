@@ -34,7 +34,7 @@ import { datasetServices } from '../services/datasetServices';
 
 
 /* Create section to string parameters */
-export const DescriptionParameter = ({ postData }) => {
+export const DescriptionParameter = ({ title, postData }) => {
 
 	// Declare constants
 	const [value, setValue] = useState('');
@@ -52,7 +52,7 @@ export const DescriptionParameter = ({ postData }) => {
 	return (
 	<>
 	<div className="field">
-		<label htmlFor="workflow-description">Describe briefly your workflow:</label>
+		<label htmlFor="workflow-description">Describe briefly your <strong>{title}</strong> workflow:</label>
 		<InputText id="workflow-description" className="w-full" maxLength='138' value={value} onChange={onChange}/>
 	</div>
 	</>

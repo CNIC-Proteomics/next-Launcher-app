@@ -305,7 +305,7 @@
   display: inline-flex;
 }
 
-.parameters label {
+.parameters label, .parameters label * {
   font-size: var(--nl-label-font-size);
 }
 

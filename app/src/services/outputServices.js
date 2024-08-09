@@ -4,34 +4,56 @@
 
 
 // Import libraries/constants
-// import axios from 'axios';
 import * as globalServices from './globalServices';
-import {
-  BACKEND_URL
-} from '../constants';
+import { BACKEND_URL } from '../constants';
 
 
 
 export class outputServices {
+
+
+  /**
+   * "fetchWithAuth" is a private method that handles fetch requests with authorization.
+   * It retrieves the token from sessionStorage and includes it in the Authorization header.
+   * @param {String} url - The URL to which the request is sent.
+   * @param {Object} options - Additional options for the fetch request, such as method, headers, and body.
+   * @returns {Response} - The fetch response object if successful.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async fetchWithAuth(url, options = {}) {
+    const token = sessionStorage.getItem('token'); // retrieve token directly inside fetchWithAuth
+    if (!token) return null;
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers, // allow custom headers to be added
+    };
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response;
+  }
 
   /**
    * "get" retrieves the outputs files from an attempt execution of a workflow.
    * @param {String} id - The workflow identifier (alphanumeric).
    * @param {Integer} attempt - The attempt identifier (integer).
    * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
    */
   static async get(id, attempt) {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/outputs/${id}/${attempt}`, {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/outputs/${id}/${attempt}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const result = await response.json();
       return result;
@@ -47,18 +69,15 @@ export class outputServices {
    * @param {String} id - The workflow identifier (alphanumeric).
    * @param {Integer} attempt - The attempt identifier (integer).
    * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
    */
-
   static async archive(id, attempt, abortController) {
     try {
-      // const response = await fetch(`${BACKEND_URL}/api/outputs/archive/${id}/${attempt}/download`,{
+      // const response = await this.fetchWithAuth(`${BACKEND_URL}/api/outputs/archive/${id}/${attempt}/download`, {
       //   signal: abortController.signal,
       // });
-      const response = await fetch(`${BACKEND_URL}/api/outputs/archive/${id}/${attempt}/download`, abortController);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-  
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/outputs/archive/${id}/${attempt}/download`, abortController);
+
       const blob = await response.blob();
       const filename = `outputs-${id}-${attempt}.tar.gz`;
       const url = window.URL.createObjectURL(blob);
@@ -79,21 +98,19 @@ export class outputServices {
   }
 
 
-
   /**
    * "single" downloads the given output file for an attempt execution of a workflow.
    * @param {String} id - The workflow identifier (alphanumeric).
    * @param {Integer} attempt - The attempt identifier (integer).
    * @param {String} file - Path of file.
    * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
    */
   static async single(id, attempt, file) {
     try {
+      const encodedFile = encodeURIComponent(file); // encode the file name to handle special characters like #
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/outputs/single/${id}/${attempt}/${encodedFile}/download`);
 
-      const response = await fetch(`${BACKEND_URL}/api/outputs/single/${id}/${attempt}/${file}/download`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
       const blob = await response.blob();
       const filename = globalServices.getBasename(file);
       const url = window.URL.createObjectURL(blob);
@@ -105,10 +122,11 @@ export class outputServices {
       a.remove();
 
     } catch (error) {
-      console.error('Error downloading archive:', error);
+      console.error('Error downloading file:', error);
       throw error;
     }
   }
+  
 
 
 

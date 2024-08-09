@@ -47,7 +47,25 @@ const Pipelines = () => {
   
   // Declare variables
   const { auth } = useContext(userServices);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [datatable, setDatatable] = useState([]);
+
+  // If auth is still null, render a loading spinner or some fallback UI
+  // useEffect(() => {
+  //   if (auth !== null) {
+  //     const data = pipelineFiles.map(convertDataToTable);
+  //     setDatatable(data);
+  //     setLoading(false);
+  //   }
+  // }, [auth]);
+  
+  // Perform actions outside the main scope
+  useEffect(() => {
+    const data = pipelineFiles.map(convertDataToTable);
+    setDatatable(data);
+    setLoading(false);
+  }, []);
+  
 
   // Transform the data pipeline for the table
   const convertDataToTable = (data) => ({
@@ -58,7 +76,7 @@ const Pipelines = () => {
     url: <UrlLink url={data.url} />,
     action: <LunchButton data={data} auth={auth} />
   });
-  const [datatable] = useState(pipelineFiles.map(convertDataToTable));
+  // const [datatable] = useState(pipelineFiles.map(convertDataToTable));
 
   // Define header
   const columns = [
@@ -94,7 +112,7 @@ const LunchButton = ({ data, auth }) => {
   const [attemptId, setAttemptId] = useState(0);
   const [datasetId, setDatasetId] = useState({});
   
-  // Navigate to new page
+  // Navigate to parameter form
   useEffect(() => {
     if (navigate && datasetId) {
       history.push({
@@ -104,16 +122,22 @@ const LunchButton = ({ data, auth }) => {
     }
   }, [navigate, history, workflowId, attemptId, datasetId, data]);
 
-  // 1. Lauch Pipeline
-  const lauchPipeline = async (data) => {
-    const workflowId = await createWorkflow(data);
-    if (workflowId) {
-      await createDataset(workflowId);
+
+  // 1. Lauch Pipeline (if user is authenticathed)
+  const lauchPipeline = async (data, auth) => {
+    if ( auth === null ) {
+      history.push('/login');
+    }
+    else {
+      const workflowId = await createWorkflow(data, auth);
+      if (workflowId) {
+        await createDataset(workflowId);
+      }  
     }
   };
 
   // 2. Launch the pipeline creating a workflow instance
-  const createWorkflow = async (data) => {
+  const createWorkflow = async (data, auth) => {
     // convert the data pipeline to POST
     let dataPOST = {};
     try {
@@ -185,7 +209,7 @@ const LunchButton = ({ data, auth }) => {
   return (
     <Button
       label='Launch'
-      onClick={() => lauchPipeline(data)}
+      onClick={() => lauchPipeline(data, auth)}
       raised
     />
   );

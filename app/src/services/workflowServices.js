@@ -10,30 +10,50 @@ import { BACKEND_URL } from '../constants';
 
 export class workflowServices {
 
-  // get token
-  static getToken() {
-    return localStorage.getItem('token');
-  }
 
-  // get the workflows
-  static async get(id=null) {
-
-    const token = this.getToken();
+  /**
+   * "fetchWithAuth" is a private method that handles fetch requests with authorization.
+   * It retrieves the token from sessionStorage and includes it in the Authorization header.
+   * @param {String} url - The URL to which the request is sent.
+   * @param {Object} options - Additional options for the fetch request, such as method, headers, and body.
+   * @returns {Response} - The fetch response object if successful.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async fetchWithAuth(url, options = {}) {
+    const token = sessionStorage.getItem('token'); // retrieve token directly inside fetchWithAuth
     if (!token) return null;
 
-    try {
-      let url = id ? `${BACKEND_URL}/api/workflows/${id}` : `${BACKEND_URL}/api/workflows`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers, // allow custom headers to be added
+    };
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response;
+  }
+
+
+  /**
+   * "get" retrieves all workflows or a specific workflow by ID.
+   * @param {String|null} id - The workflow identifier (optional). If null, retrieves all workflows.
+   * @returns {Object|null} - The workflow object or list of workflows if found, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async get(id = null) {
+    try {
+      const url = id ? `${BACKEND_URL}/api/workflows/${id}` : `${BACKEND_URL}/api/workflows`;
+      const response = await this.fetchWithAuth(url, {
+        method: 'GET',
+      });
 
       const result = await response.json();
       return result;
@@ -43,25 +63,19 @@ export class workflowServices {
     }
   }
 
-  // create a workflow based on a pipeline
+
+  /**
+   * "create" creates a new workflow based on the provided data.
+   * @param {Object} data - The data used to create the workflow.
+   * @returns {Object|null} - The created workflow object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
   static async create(data) {
-
-    const token = this.getToken();
-    if (!token) return null;
-
     try {
-      const response = await fetch(`${BACKEND_URL}/api/workflows/0`, {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/workflows/0`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const result = await response.json();
       return result;
@@ -71,25 +85,20 @@ export class workflowServices {
     }
   }
 
-  // launch a workflow
+
+  /**
+   * "edit" edits an existing workflow identified by the provided ID.
+   * @param {String} id - The workflow identifier.
+   * @param {Object} data - The data used to edit the workflow.
+   * @returns {Object|null} - The edited workflow object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
   static async edit(id, data) {
-
-    const token = this.getToken();
-    if (!token) return null;
-
     try {
-      const response = await fetch(`${BACKEND_URL}/api/workflows/${id}`, {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/workflows/${id}`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const result = await response.json();
       return result;
@@ -99,27 +108,21 @@ export class workflowServices {
     }
   }
 
-  // launch a workflow
+
+  /**
+   * "launch" launches a workflow identified by the provided ID with the given data.
+   * @param {String} id - The workflow identifier.
+   * @param {Object} data - The data used to launch the workflow.
+   * @returns {Object|null} - The result of the workflow launch if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
   static async launch(id, data) {
-
-    const token = this.getToken();
-    if (!token) return null;
-
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${BACKEND_URL}/api/workflows/${id}/launch`, {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/workflows/${id}/launch`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const result = await response.json();
       return result;
     } catch (error) {
@@ -128,26 +131,20 @@ export class workflowServices {
     }
   }
 
-  // get the workflow log for a given attempt
+  
+  /**
+   * "log" retrieves the workflow log for a given attempt.
+   * @param {String} id - The workflow identifier.
+   * @param {Integer} attempt - The attempt identifier.
+   * @returns {Object|null} - The workflow log if found, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
   static async log(id, attempt) {
-
-    const token = this.getToken();
-    if (!token) return null;
-
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${BACKEND_URL}/api/workflows/${id}/${attempt}/log`, {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/workflows/${id}/${attempt}/log`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const result = await response.json();
       return result;
     } catch (error) {
@@ -155,6 +152,7 @@ export class workflowServices {
       throw error;
     }
   }
+
 
 };
   

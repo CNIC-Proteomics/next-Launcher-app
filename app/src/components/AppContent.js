@@ -20,6 +20,7 @@ import Pipelines from './Pipelines';
 import Parameters from './Parameters';
 import Workflows from './Workflows';
 import Workflow from './Workflow';
+import Datasets from './Datasets';
 
 
 /*
@@ -46,9 +47,10 @@ const AppContent = () => {
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
-          <RoleBasedRoute path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} allowedRoles={['guess','admin']} />
-          <RoleBasedRoute path="/workflows/:workflowId/:attemptId" component={Workflow} allowedRoles={['guess','admin']} />
-          <RoleBasedRoute path="/workflows" component={Workflows} allowedRoles={['guess','admin']} />
+          <RoleBasedRoute path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} allowedRoles={['guest','admin']} />
+          <RoleBasedRoute path="/workflows/:workflowId/:attemptId" component={Workflow} allowedRoles={['guest','admin']} />
+          <RoleBasedRoute path="/workflows" component={Workflows} allowedRoles={['guest','admin']} />
+          <RoleBasedRoute path="/datasets" component={Datasets} allowedRoles={['guest','admin']} />
           <Route path="/pipelines" component={Pipelines} />
           <Route path="/" exact component={MainPage} />
         </Switch>
