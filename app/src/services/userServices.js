@@ -27,8 +27,8 @@ const AuthProvider = ({ children }) => {
 
   // Declare variables
   const [auth, setAuth] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  // const [error, setError] = useState(null);
+  // const [success, setSuccess] = useState(null);
 
   // Chech the authentication
   const checkAuth = useCallback(async () => {
@@ -78,26 +78,30 @@ const AuthProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let error = `${response.status}:${response.statusText}`;
+        throw new Error(`Login failed: ${error}`);
       }
       const result = await response.json();
-      
-      // save tokens
-      const decodedToken = jwtDecode(result.token);
-      sessionStorage.setItem('token', result.token);
-      
-      // save variables
-      setAuth({ token: result.token, username: decodedToken.username, role: decodedToken.role });
-      setSuccess('Login successful');
-      setError(null);
+
+      try {
+        // save token
+        const decodedToken = jwtDecode(result.token);
+        sessionStorage.setItem('token', result.token);
+        setAuth({ token: result.token, username: decodedToken.username, role: decodedToken.role });
+
+      } catch (err) {
+        throw new Error(`Token processing failed: ${err.message}`);
+      }
+
+      // return response
+      // return result;
 
     } catch (error) { // handle error
-      setError(error);
-      setSuccess(null);
-      console.error('Error:', error);
-      throw error;
+      console.error(error);
+      throw new Error(error.message);
     }
   };
+
 
   /**
    * "register" sets the authentication of the user.
@@ -117,19 +121,49 @@ const AuthProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let error = `${response.status}:${response.statusText}`;
+        throw new Error(`Register failed: ${error}`);
+      }
+      // const result = await response.json();
+
+    } catch (error) { // handle error
+      console.error(error);
+      throw new Error(error.message);
+    }
+  };
+
+
+  /**
+   * "info" gets the user information.
+   * @param {String} username - The username.
+   * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  const info = async (username) => {
+    // retrieve token directly
+    const token = sessionStorage.getItem('token');
+    if (!token) return null;  
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/users/${username}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        let error = `${response.status}:${response.statusText}`;
+        throw new Error(`User info failed: ${error}`);
       }
       const result = await response.json();
 
-      // save variables
-      setSuccess(result);
-      setError(null);
+      return result; // return response
 
     } catch (error) { // handle error
-      setError(error);
-      setSuccess(null);
-      console.error('Error:', error);
-      throw error;
+      console.error(error);
+      throw new Error(error.message);
     }
   };
 
@@ -142,7 +176,8 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <userServices.Provider value={{ auth, checkAuth, login, register, logout, error, success }}>
+    // <userServices.Provider value={{ auth, checkAuth, login, register, info, logout, error, success }}>
+    <userServices.Provider value={{ auth, checkAuth, login, register, info, logout }}>
       {children}
     </userServices.Provider>
   );

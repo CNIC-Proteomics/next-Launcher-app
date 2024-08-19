@@ -19,6 +19,9 @@ import {
   GUEST_USER,
   GUEST_PWD
 } from '../constants';
+import {
+  showError,
+} from '../services/toastServices';
 import { userServices } from '../services/userServices';
 
 
@@ -29,11 +32,11 @@ import { userServices } from '../services/userServices';
 const Login = () => {
   
   // Declare variables
+  const { login } = useContext(userServices);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [empty, setEmpty] = useState({});
   const history = useHistory();
-  const { login, error, success } = useContext(userServices);
 
   // Check if fields are empty
   const emptyValidation = () => {
@@ -50,24 +53,32 @@ const Login = () => {
     if (Object.keys(validationEmpties).length > 0) {
         setEmpty(validationEmpties);
     } else {
-      setEmpty({});
-      await login(username, password);
-      history.push('/pipelines');
+      try {
+        setEmpty({});
+        await login(username, password);
+        history.push('/pipelines');
+      } catch (err) {
+        showError('', `${err}`);
+      }
     }
   };
 
   // Login guest user
   const handleGuestLogin = async (e) => {
-    await login(GUEST_USER, GUEST_PWD);
-    history.push('/pipelines');
+    e.preventDefault();
+    try {
+      await login(GUEST_USER, GUEST_PWD);
+      history.push('/pipelines');
+    } catch (err) {
+      showError('', `${err}`);
+    }
   };
 
   // Go to register page
   const goToRegister = () => {
     history.push('/register');
   };
-
-  
+    
   return (
     <div className='login-content'>
       <div className='flex flex-column md:flex-row'>
@@ -80,8 +91,6 @@ const Login = () => {
             className='w-10rem'
             onClick={handleGuestLogin}
           />
-          {error && <div style={{ color: 'red' }}>{error}</div>}
-          {success && <div style={{ color: 'green' }}>{success}</div>}
         </div>
 
         <div className='w-full md:w-2'>
@@ -92,7 +101,7 @@ const Login = () => {
         <div className='w-full md:w-7 flex flex-column align-items-center gap-3 py-5'>
           <div className='flex flex-wrap align-items-center gap-2'>
             {/* <label htmlFor='username'>Username</label> */}
-            <InputText id='username' placeholder='Username' type='text' className='w-14rem' value={username} onChange={(e) => setUsername(e.target.value)} />
+            <InputText id='username' placeholder='Username' type='text'value={username} onChange={(e) => setUsername(e.target.value)} />
             {empty.username && <Message severity='error' text='Username is required' />}
           </div>
           <div className='flex flex-wrap align-items-center gap-2'>

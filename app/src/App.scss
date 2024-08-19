@@ -177,6 +177,13 @@
   font-size: var(--nl-font-size);
 }
 
+.login-content .p-inputtext,    .login-content .p-password-input {
+  width: 300px;
+}
+.register-content .p-inputtext, .register-content .p-password-input {
+  width: 300px;
+}
+ 
 
 /*
  * DATATABLE: PIPELINES, WORKFLOWS,...

@@ -11,11 +11,12 @@ import {
 import {
   AppToaster,
 } from '../services/toastServices';
+import RoleBasedRoute from './RoleBasedRoute';
 import NavigationTabs from './NavigationTabs';
 import MainPage from './MainPage';
 import Login from './Login';
 import Register from './Register';
-import RoleBasedRoute from './RoleBasedRoute';
+import User from './User';
 import Pipelines from './Pipelines';
 import Parameters from './Parameters';
 import Workflows from './Workflows';
@@ -47,6 +48,7 @@ const AppContent = () => {
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <RoleBasedRoute path="/user" component={User} allowedRoles={['guest','admin']} />
           <RoleBasedRoute path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} allowedRoles={['guest','admin']} />
           <RoleBasedRoute path="/workflows/:workflowId/:attemptId" component={Workflow} allowedRoles={['guest','admin']} />
           <RoleBasedRoute path="/workflows" component={Workflows} allowedRoles={['guest','admin']} />
