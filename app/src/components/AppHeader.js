@@ -15,6 +15,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 
 import {
+  APP_NAME,
   APP_VERSION
 } from '../constants';
 import { userServices } from '../services/userServices';
@@ -36,7 +37,7 @@ const AppHeader = () => {
     <div className='flex align-items-center gap-2'>
       <img alt='logo' src='/logo512.png' height='40' className='mr-2'></img>
       <a href='/' className='p-menuitem-title'>
-        <span className='p-menuitem-text'>next-Launcher</span>
+        <span className='p-menuitem-text'>{APP_NAME}</span>
       </a>
       <small className='mt-2'>{APP_VERSION}</small>
     </div>

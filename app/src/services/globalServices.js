@@ -32,13 +32,42 @@ export const getAttemptById = (workflow, id) => {
 };
 
 
-// Utility function to get basename from a path or URL
+/**
+ * Utility function to get file name from a path or URL
+ * @param {String} path - Path from a file
+ * @returns {String} - The base name of file.
+ */
+export const getFileName = (path) => {
+  return path.split('/').pop();
+};
+
+
 /**
  * Utility function to get basename from a path or URL
  * @param {String} path - Path from a file
  * @returns {String} - The base name of file.
  */
-export const getBasename = (path) => {
-  return path.split('/').pop();
+export const getBaseName = (path) => {
+  const nameWithExtension = path.split('/').pop();
+  return nameWithExtension.split('.').slice(0, -1).join('.');
 };
-  
+
+
+/**
+ * Utility function to format a file size into human-readable units (B, KB, MB, GB, etc.)
+ * @param {Number} sizeInBytes - File size in bytes
+ * @returns {String} - Formatted file size with two decimal points and the appropriate unit (B, KB, MB, GB, etc.)
+ */
+export const formatFileSize = (sizeInBytes) => {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let index = 0;
+
+    // Convert the file size to the appropriate unit
+    while (sizeInBytes >= 1024 && index < units.length - 1) {
+        sizeInBytes /= 1024;
+        index++;
+    }
+
+    // Return the formatted file size with two decimal precision and the unit
+    return `${sizeInBytes.toFixed(2)} ${units[index]}`;
+};

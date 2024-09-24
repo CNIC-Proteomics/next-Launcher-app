@@ -168,6 +168,7 @@ const LunchButton = ({ data, auth }) => {
     let dataPOST = {};
     try {
       dataPOST = {
+        author: auth.username,
         experiment: workflowId
       };
     } catch (error) {

@@ -193,11 +193,11 @@ const Workflows = () => {
           <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
           {columns.map((col, i) => (
               <Column
+                sortable
                 key={i}
                 field={col.field}
                 header={col.header}
                 body={col.field === 'status' ? statusBodyTemplate : undefined}
-                // filter={col.field === 'status'}
               />
           ))}
         </DataTable>

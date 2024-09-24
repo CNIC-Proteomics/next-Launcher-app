@@ -25,7 +25,7 @@ const showToast = (severity, summary, detail, options = {}) => {
 // Wrapper functions for different types of messages
 const showInfo = (summary, detail) => showToast('info', summary, detail, {life: 3000});
 const showError = (summary, detail) => showToast('error', summary, detail, {sticky: true});
-const showWarning = (summary, detail) => showToast('warn', summary, detail, {life: 3000});
+const showWarning = (summary, detail) => showToast('warn', summary, detail, {sticky: true});
 
 // Create component
 const AppToaster = () => {

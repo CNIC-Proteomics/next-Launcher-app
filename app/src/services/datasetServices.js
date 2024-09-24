@@ -46,6 +46,28 @@ export class datasetServices {
 
   
   /**
+   * "get" retrieves all datasets or a specific dataset by ID.
+   * @param {String|null} id - The workflow identifier (optional). If null, retrieves all datasets.
+   * @returns {Object|null} - The workflow object or list of datasets if found, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async get(id = null) {
+    try {
+      const url = id ? `${BACKEND_URL}/api/datasets/${id}` : `${BACKEND_URL}/api/datasets`;
+      const response = await this.fetchWithAuth(url, {
+        method: 'GET',
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+
+  /**
    * "create" creates a new dataset instance based on the provided data.
    * @param {Object} data - The data used to create the dataset.
    * @returns {Object|null} - The created dataset object if successful, otherwise throws an error.
@@ -55,15 +77,34 @@ export class datasetServices {
     try {
       const response = await this.fetchWithAuth(`${BACKEND_URL}/api/datasets/0`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
 
       const result = await response.json();
       return result;
 
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+
+  /**
+   * "edit" update a dataset instance based on the provided data.
+   * @param {Object} data - The data used to create the dataset.
+   * @returns {Object|null} - The created dataset object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async edit(id, data) {
+    try {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/datasets/${id}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      return result;
     } catch (error) {
       console.error('Error:', error);
       throw error;
@@ -148,6 +189,48 @@ export class datasetServices {
     });
     
     return await Promise.all(uploadPromises);
+  }
+
+  /**
+   * "delete" a dataset instance based on the provided id.
+   * @param {String} id - The dataset identifier.
+   * @returns {Object|null} - The created dataset object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async delete(id) {
+    try {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/datasets/${id}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * "remove" files based on the dataset id and file names.
+   * @param {String} id - The dataset identifier.
+   * @param {Object} data - The data used to remove the files from a dataset.
+   * @returns {Object|null} - The created dataset object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async remove(id, data) {
+    try {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/datasets/${id}/delete`, {
+        method: 'DELETE',
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
   }
 
 };

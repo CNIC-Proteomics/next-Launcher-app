@@ -243,7 +243,8 @@ const WorkflowPanels = ({workflowId, attemptId, attemptStatus, execLogText}) => 
 			// get the relative path of file
 			let { name, path } = output.data;
 			let filePath = `${path}/${name}`;
-			await outputServices.single(workflowId, attemptId, filePath);
+			let dirPath = `_workflows/${workflowId}/${attemptId}`;
+			await outputServices.single(dirPath, filePath);
 		} catch (error) {
 			showError('', 'The output file was not downloaded correctly');
 			console.error('Error getting output:', error);
@@ -417,7 +418,7 @@ const FileViewer = ({typeOutput, files, expandedKeys, onToggle, workflowId, atte
 					<Column field="name" header="Name" expander></Column>
 					<Column field="size" header="Size" className="short-column"></Column>
 					<Column field="type" header="Type" className="short-column"></Column>
-					<Column 						 header="Action" className="short-column" body={actionTemplate} />
+					<Column header="Action" className="short-column" body={actionTemplate} />
 			</TreeTable>
 	</div>
 	);

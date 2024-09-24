@@ -56,7 +56,7 @@ const Login = () => {
       try {
         setEmpty({});
         await login(username, password);
-        history.push('/pipelines');
+        history.push('/');
       } catch (err) {
         showError('', `${err}`);
       }
@@ -68,7 +68,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await login(GUEST_USER, GUEST_PWD);
-      history.push('/pipelines');
+      history.push('/');
     } catch (err) {
       showError('', `${err}`);
     }
@@ -101,12 +101,27 @@ const Login = () => {
         <div className='w-full md:w-7 flex flex-column align-items-center gap-3 py-5'>
           <div className='flex flex-wrap align-items-center gap-2'>
             {/* <label htmlFor='username'>Username</label> */}
-            <InputText id='username' placeholder='Username' type='text'value={username} onChange={(e) => setUsername(e.target.value)} />
+            <InputText
+              id='username'
+              placeholder='Username'
+              type='text'
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
             {empty.username && <Message severity='error' text='Username is required' />}
           </div>
           <div className='flex flex-wrap align-items-center gap-2'>
             {/* <label htmlFor='password'>Password</label> */}
-            <Password id='password' type='password' placeholder='Password' feedback={false} value={password} onChange={(e) => setPassword(e.target.value)} toggleMask />
+            <Password
+              id='password'
+              type='password'
+              placeholder='Password'
+              feedback={false}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin(e)}
+              toggleMask
+            />
             {empty.password && <Message severity='error' text='Password is required' />}
           </div>
           <Button label='Login' icon='pi pi-user' className='w-10rem mx-auto' onClick={handleLogin}></Button>

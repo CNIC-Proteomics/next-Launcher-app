@@ -100,19 +100,18 @@ export class outputServices {
 
   /**
    * "single" downloads the given output file for an attempt execution of a workflow.
-   * @param {String} id - The workflow identifier (alphanumeric).
-   * @param {Integer} attempt - The attempt identifier (integer).
+   * @param {String} path - Path of directory.
    * @param {String} file - Path of file.
    * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
    * @throws {Error} - Throws an error if the request is not successful.
    */
-  static async single(id, attempt, file) {
+  static async single(path, file) {
     try {
       const encodedFile = encodeURIComponent(file); // encode the file name to handle special characters like #
-      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/outputs/single/${id}/${attempt}/${encodedFile}/download`);
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/outputs/single/${path}/${encodedFile}/download`);
 
       const blob = await response.blob();
-      const filename = globalServices.getBasename(file);
+      const filename = globalServices.getFileName(file);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

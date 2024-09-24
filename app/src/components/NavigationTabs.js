@@ -25,6 +25,10 @@ const NavigationTabs = () => {
     icon: 'pi pi-home',
     to: '/'
   },{
+    label: 'Datasets',
+    icon: 'pi pi-database',
+    to: '/datasets'
+  },{
     label: 'Pipelines',
     icon: 'pi pi-sitemap',
     to: '/pipelines'
@@ -32,17 +36,14 @@ const NavigationTabs = () => {
     label: 'Workflows',
     icon: 'pi pi-list',
     to: '/workflows'
-  },{
-    label: 'Datasets',
-    icon: 'pi pi-database',
-    to: '/datasets'
   }];
 
   useEffect(() => {
       const pathToIndex = {
           '/': 0,
-          '/pipelines': 1,
-          '/workflows': 2
+          '/datasets': 1,
+          '/pipelines': 2,
+          '/workflows': 3
       };
       setActiveIndex(pathToIndex[location.pathname]);
   }, [location]);

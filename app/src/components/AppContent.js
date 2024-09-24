@@ -17,11 +17,13 @@ import MainPage from './MainPage';
 import Login from './Login';
 import Register from './Register';
 import User from './User';
+import Dataset from './Dataset';
+// import CreateDataset from './CreateDataset';
+import Datasets from './Datasets';
 import Pipelines from './Pipelines';
-import Parameters from './Parameters';
+import CreateWorkflow from './CreateWorkflow';
 import Workflows from './Workflows';
 import Workflow from './Workflow';
-import Datasets from './Datasets';
 
 
 /*
@@ -49,10 +51,29 @@ const AppContent = () => {
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <RoleBasedRoute path="/user" component={User} allowedRoles={['guest','admin']} />
-          <RoleBasedRoute path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={Parameters} allowedRoles={['guest','admin']} />
+          {/* URLs:
+            datasets
+            datsets/0/create
+            datasets/:id/update
+          */
+          }
+          <RoleBasedRoute path="/datasets/:id/:operation" component={Dataset} allowedRoles={['guest','admin']} />
+          <RoleBasedRoute path="/datasets" component={Datasets} allowedRoles={['guest','admin']} />
+          {/* URLs:
+            workflows
+            workflows/0/0/create
+            datasets/:id/:attempt/update{launch}
+            datasets/:id/:attempt/view
+
+            <RoleBasedRoute path="/workflows/:workflowId/:attemptId/create" component={CreateWorkflow} allowedRoles={['guest','admin']} />
+            <RoleBasedRoute path="/workflows/:workflowId/:attemptId/update" component={UpdateWorkflow} allowedRoles={['guest','admin']} />
+            <RoleBasedRoute path="/workflows/:workflowId/:attemptId/view" component={Workflow} allowedRoles={['guest','admin']} />
+
+          */
+          }
+          <RoleBasedRoute path="/workflows/:workflowId/:attemptId/datasets/:datasetId" component={CreateWorkflow} allowedRoles={['guest','admin']} />
           <RoleBasedRoute path="/workflows/:workflowId/:attemptId" component={Workflow} allowedRoles={['guest','admin']} />
           <RoleBasedRoute path="/workflows" component={Workflows} allowedRoles={['guest','admin']} />
-          <RoleBasedRoute path="/datasets" component={Datasets} allowedRoles={['guest','admin']} />
           <Route path="/pipelines" component={Pipelines} />
           <Route path="/" exact component={MainPage} />
         </Switch>
