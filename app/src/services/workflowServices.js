@@ -133,6 +133,27 @@ export class workflowServices {
 
   
   /**
+   * "delete" a workflow instance based on the provided id.
+   * @param {String} id - The workflow identifier.
+   * @returns {Object|null} - The created workflow object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async delete(id) {
+    try {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/workflows/${id}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+
+  /**
    * "log" retrieves the workflow log for a given attempt.
    * @param {String} id - The workflow identifier.
    * @param {Integer} attempt - The attempt identifier.

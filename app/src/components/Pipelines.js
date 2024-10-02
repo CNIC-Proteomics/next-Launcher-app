@@ -13,12 +13,11 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 
-import {
-  showError,
-} from '../services/toastServices';
+// import { logger } from '../logger';
+// import { showError } from '../services/toastServices';
+// import { workflowServices } from '../services/workflowServices';
+// import { datasetServices } from '../services/datasetServices';
 import { userServices } from '../services/userServices';
-import { workflowServices } from '../services/workflowServices';
-import { datasetServices } from '../services/datasetServices';
 
 /*
  * Constants
@@ -37,11 +36,17 @@ const importAll = (r) => {
 // Import all JSON files from the "pipelines" folder
 const pipelineFiles = importAll(require.context('../../public/pipelines', false, /\.json$/));
 
+
 /*
  * Components
  */
 
 
+/**
+ * Piperlines
+ * COmponent that create the pipelines table
+ * @returns
+ */
 // Function that transform the pipeline data
 const Pipelines = () => {
   
@@ -93,118 +98,53 @@ const Pipelines = () => {
   );
 };
 
+
+
+/**
+ * LunchButton
+ * Create Launch button for pipeline
+ * @param {Object} data - workflow data
+ * @returns 
+ */
 // Lunch Button that redirect to "Parameters"
-const LunchButton = ({ data, auth }) => {
-  const history = useHistory();
-  const [workflowId, setWorkflowId] = useState('');
-  const [attemptId, setAttemptId] = useState(0);
-  const [datasetId, setDatasetId] = useState('');
+const LunchButton = ({ data }) => {
   const [navigate, setNavigate] = useState(false);
+  const history = useHistory();
   
   // Navigate to parameter form
   useEffect(() => {
-    if (navigate && datasetId) {
+    if (navigate) {
       history.push({
-        pathname: `/workflows/${workflowId}/${attemptId}/datasets/${datasetId}`,
+        pathname: `/pipelines/${data.title}/create`,
         state: { schema: data }
       });
     }
-  }, [navigate, history, workflowId, attemptId, datasetId, data]);
+  }, [navigate, history, data]);
 
-
-  // 1. Lauch Pipeline (if user is authenticathed)
-  const lauchPipeline = async (data, auth) => {
-    if ( auth === null ) {
-      history.push('/login');
-    }
-    else {
-      const workflowId = await createWorkflow(data, auth);
-      if (workflowId) {
-        await createDataset(workflowId);
-      }  
-    }
+  // Lauch Pipeline (if user is authenticathed)
+  const lauchPipeline = () => {
+    setNavigate(true); // set state to trigger navigation
   };
 
-  // 2. Launch the pipeline creating a workflow instance
-  const createWorkflow = async (data, auth) => {
-    // convert the data pipeline to POST
-    let dataPOST = {};
-    try {
-      dataPOST = {
-        author: auth.username,
-        profiles: auth.role,
-        name: data.title,
-        pipeline: data.url,
-        revision: data.revision
-      };
-    } catch (error) {
-      showError('', 'Processing the data for the POST request during workflow creation');
-      console.error('Processing the data for the POST request during workflow creation: ', error);
-    }
-    // make the POST request to create a workflow
-    try {
-      if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
-        const result = await workflowServices.create(dataPOST);
-        // const result = {_id: '667996c52ddebdab5fdc8a30'};
-        if (result && result._id) {
-          setWorkflowId(result._id);
-          setAttemptId(0);
-          return result._id;
-        }
-        else {  
-          showError('', 'The workflow instance was not created correctly');
-          console.error('The workflow id was not provided.');
-        }
-      }
-    } catch (error) {
-      showError('', 'Processing the data for the POST request during workflow creation');
-      console.error('Error: making a POST request during workflow creation: ', error);
-    }
-  };
-
-  // 3. Launch the pipeline creating a dataset instance
-  const createDataset = async (workflowId) => {
-    // convert the data pipeline to POST
-    let dataPOST = {};
-    try {
-      dataPOST = {
-        author: auth.username,
-        experiment: workflowId
-      };
-    } catch (error) {
-      showError('', 'Processing the data for the POST request during dataset creation');
-      console.error('Processing the data for the POST request during dataset creation: ', error);
-    }
-    // make the POST request to create a workflow
-    try {
-      if ( Object.keys(dataPOST).length !== 0 && dataPOST.constructor === Object) {
-        const result = await datasetServices.create(dataPOST);
-        // const result = {_id: '667996c52ddebdab5fdc8a31'};
-        if (result && result._id) {
-          setDatasetId(result._id);
-          setNavigate(true); // set state to trigger navigation
-          return result._id;
-        }
-        else {  
-          showError('', 'The dataset instance was not created correctly');
-          console.error('The dataset id was not provided.');
-        }
-      }
-    } catch (error) {
-      showError('', 'Processing the data for the POST request during dataset creation');
-      console.error('Error: making a POST request during dataset creation: ', error);
-    }
-  };
-
+  // Render
   return (
     <Button
       label='Launch'
-      onClick={() => lauchPipeline(data, auth)}
+      onClick={() => lauchPipeline()}
       raised
     />
   );
 };
 
+
+
+
+/**
+ * StatusIcon
+ * Provide icon of pipeline status.
+ * @param {String} status
+ * @returns 
+ */
 const StatusIcon = ({ status }) => {
   const iconClass = {
     0: 'pi pi-check-circle',
@@ -222,6 +162,15 @@ const StatusIcon = ({ status }) => {
   return <i className={iconClass} style={{ color }}></i>;
 };
 
+
+
+
+/**
+ * UrlLink
+ * 
+ * @param {String} url 
+ * @returns 
+ */
 const UrlLink = ({ url }) => (
   <div className="flex gap-1">
     <a href={url} target='_blank' rel="noopener noreferrer">{url}</a>

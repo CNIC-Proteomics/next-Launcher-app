@@ -240,6 +240,7 @@
 }
 
 // header: action buttons
+.table-workflows .p-datatable-header .p-button,
 .table-datasets .p-datatable-header .p-button {
   width: 30px;
   height: 30px;
@@ -436,11 +437,19 @@
   height: 30px;
   margin-right: 5px;
 }
-
 .report-dataset .p-treetable-scrollable-body {
   height: 300px;
   max-height: 300px;
 }
+// card
+.card-dataset {
+  padding: 10px 100px 20px 100px;
+  background-color: var(--nl-navbar-bg-color);
+}
+.card-dataset .p-card-content {
+  padding: 0.3rem 0;
+}
+
 
 // // paginator
 // .report-dataset  .p-paginator * {

@@ -118,11 +118,11 @@ export class datasetServices {
    * @param {String} format - The format of the dataset.
    * @param {String} parameter - The specific parameter associated with the file.
    * @param {File} file - The file object to be uploaded.
-   * @param {Function} onProgress - A callback function to handle progress updates.
+   * @param {Function} onProgress - (Optional) A callback function to handle progress updates.
    * @returns {Promise<Object>} - Resolves with the server response if successful, otherwise throws an error.
    * @throws {Error} - Throws an error if the upload fails.
    */
-  static async up(id, format, parameter, file, onProgress) {
+  static async up(id, format, parameter, file, onProgress=null) {
 
     const token = sessionStorage.getItem('token'); // retrieve token directly inside fetchWithAuth
     if (!token) return null;
@@ -135,12 +135,14 @@ export class datasetServices {
         xhr.open('POST', `${BACKEND_URL}/api/datasets/${id}/${format}/${parameter}/upload`);
         xhr.setRequestHeader('Authorization', `Bearer ${token}`); // set the Authorization header
 
-        xhr.upload.onprogress = (event) => {
+        if (onProgress) {
+          xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 const percentage = Math.round((event.loaded * 100) / event.total);
                 onProgress(percentage);
             }
-        };
+          };
+        }
 
         xhr.onload = () => {
             if (xhr.status === 200) {
