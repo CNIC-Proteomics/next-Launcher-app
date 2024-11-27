@@ -43,8 +43,30 @@ export class datasetServices {
 
     return response;
   }
-
   
+  /**
+   * "removeFiles" filters out specified files from each dataset's files array.
+   * If it's a single dataset object, filter specified files directly.
+   * @param {Object|Object[]} datasets - A single dataset object or an array of datasets.
+   * @param {String[]} filenames - An array of filenames to remove (e.g., ["meta.json", "anotherFile.txt"]).
+   * @returns {Object|Object[]} - The dataset object or list of datasets with specified files removed.
+   */
+  static removeFiles(datasets, filenames) {
+    try {
+      if (!Array.isArray(datasets) && 'files' in datasets) {
+        return {
+          ...datasets,
+          files: datasets.files.filter(file => !filenames.includes(file.data.name)),
+        };
+      }
+      // Otherwise, don't change the result
+      else { return datasets }  
+    } catch (error) {
+      return datasets;
+    }
+  }
+
+
   /**
    * "get" retrieves all datasets or a specific dataset by ID.
    * @param {String|null} id - The workflow identifier (optional). If null, retrieves all datasets.
@@ -59,7 +81,7 @@ export class datasetServices {
       });
 
       const result = await response.json();
-      return result;
+      return this.removeFiles(result, ['meta.json']); // filter out specified files
     } catch (error) {
       console.error('Error:', error);
       throw error;
@@ -192,6 +214,31 @@ export class datasetServices {
     
     return await Promise.all(uploadPromises);
   }
+
+
+  /**
+   * "link" creates a symbolic link to a path for a dataset instance.
+   * @param {string} id - The dataset ID.
+   * @param {string} name - The name associated with the dataset instance.
+   * @param {Object} data - The data containing the path to link.
+   * @returns {Object|null} - The response object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async link(id, data) {
+    try {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/datasets/${id}/link`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
 
   /**
    * "delete" a dataset instance based on the provided id.

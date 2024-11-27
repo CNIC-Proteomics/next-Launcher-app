@@ -146,7 +146,7 @@ export const DatasetExplorerDialog = ({ pName, property, postData }) => {
 				<InputText value={datasetValue} readOnly />
 				<Button 
 					label="Browse" 
-					icon="pi pi-cloud-download" 
+					icon="pi pi-cloud-upload" 
 					className='border-round-right-md p-button-success' 
 					onClick={onDialog} 
 					outlined 

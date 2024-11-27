@@ -72,26 +72,6 @@ const Datasets = ({ setDatasetForDialog  }) => {
   const hasWkfData = useRef(false);
 
 
-  // // Transform raw dataset data to displayable format for the DataTable.
-  // // Adds action buttons for each dataset.
-  // const transformData = (data) => {
-	// 	let result = [];
-	// 	data.forEach(item => {
-	// 		const { _id, name, description, author, date_created, n_files } = item;
-	// 		result.push({
-  //       _id,
-	// 			name,
-	// 			description,
-	// 			author,
-	// 			'date_created': timestampToDate(date_created),
-	// 			'n_files': n_files,
-	// 			'action': <ActionButton data={item} setDatasetForDialog={setDatasetForDialog} />
-	// 		});
-	// 	});
-	// 	return result;
-	// };
-
-
 	// Get the datasets calling the service
 	// with useCallback: Memoize the fetchWorkflows function
   const fetchDatasets = useCallback(async () => {

@@ -13,12 +13,14 @@ import { InputText } from 'primereact/inputtext';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
 import { Card } from 'primereact/card';
+import { Dialog } from 'primereact/dialog';
 
 import { MAX_FILE_SIZE } from '../constants';
 import { showInfo, showError, showWarning } from '../services/toastServices';
 import * as globalServices from '../services/globalServices';
 import { userServices } from '../services/userServices';
 import { datasetServices } from '../services/datasetServices';
+import Volumes from './Volumes';
 
 
 
@@ -40,7 +42,7 @@ const Dataset = (props) => {
 
 	// Declare states and references
 	const [datasetId, setDatasetId] = useState(id);
-	const [dataset, setDataset] = useState({});
+	const [dataset, setDataset] = useState({name: '', description: '', files: []});
 	const hasDatasetData = useRef(false); // reference to track if data has been fetched
 	const [loading, setLoading] = useState(true);
 	const [isProcessing, setIsProcessing] = useState(false);
@@ -54,11 +56,18 @@ const Dataset = (props) => {
 			if (result && result.files) {
 				// update the status of each file
 				// if the file has children, recursively add the status to its children
-				const addStatusToFiles = (files) => {
+				const addStatusToFiles = (files, parentStatus = null) => {
 					return files.map(file => {
+						// update the file's checked status
 						file.data.checked = false;
-						if (file.data.type !== 'folder') { file.data.status = 'upload'; }
-						if (file.children) { file.children = addStatusToFiles(file.children) }
+						// determine current status based on parent
+						if (parentStatus === 'link') {
+							file.data.status = ''; // set empty status if parent is "link"
+						} else {
+							file.data.status = file.data.is_link ? 'link' : 'upload'; // default status (upload)
+						}
+						// process children recursively
+						if (file.children) { file.children = addStatusToFiles(file.children, file.data.status) }
 						return file;
 					});
 				};
@@ -76,11 +85,11 @@ const Dataset = (props) => {
 	};
 
 
-  // Updates the files within the dataset state
-	const updateDatasetFiles = (updatedFiles) => {
+	// Updates the info of dataset state
+	const updateDataset = (updates) => {
 		setDataset((prevDataset) => ({
-		...prevDataset,
-		files: updatedFiles,
+				...prevDataset, // preserve all existing properties
+				...updates,     // overwrite properties with updates
 		}));
 	};
 
@@ -91,8 +100,10 @@ const Dataset = (props) => {
 		// create the dataset instance
 		const id = await createData(dataset, auth);
 		if (id) {
-			// upload the files from file table
-			await updateFiles(id, dataset.files);
+			// upload/link the files from file table
+			if ( 'files' in dataset ) {
+				await updateFiles(id, dataset.files);
+			}
 			setIsProcessing(false);
 			showInfo('', 'The dataset was created correctly');
 			// redirect to datasets
@@ -135,12 +146,14 @@ const Dataset = (props) => {
 
 
 	// Update the dataset ---
-  const updateDataset = async () => {
+  const editDataset = async () => {
 		setIsProcessing(true);
 		// update the dataset info
 		await updateData(datasetId, dataset);
 		// update the files (add and remove)
-		await updateFiles(datasetId, dataset.files);
+		if ( 'files' in dataset ) {
+			await updateFiles(datasetId, dataset.files);
+		}
 		// refetch dataset after operation
 		fetchDataset(datasetId);
 		setIsProcessing(false);
@@ -183,43 +196,59 @@ const Dataset = (props) => {
 	const updateFiles = async (id, files) => {
 		// function to recursively process each file and its children
 		const processFile = async (file) => {
+			// upload the given file
 			if (file.data.status === 'uploadable') {
 				try {
 					// update status to uploading
 					file.data.status = 'uploading';
-					updateDatasetFiles(files); // update the dataset state
+					updateDataset({ 'files': files }); // update the files of dataset
 					// upload logic based on file path
-					if (file.data.type === 'file') {
-						if (file?.data?.path === '.') {
+					if (file.data.type === 'file' && file?.data?.path) {
+						if (file.data.path === '.') {
 							await datasetServices.up(id, 'file-path', globalServices.getBaseName(file.data.name), file.data.object);
-						} else if (file.data?.path !== '.') {
+						} else if (file.data.path !== '.') {
 							await datasetServices.up(id, 'directory-path', file.data.path, file.data.object);
 						}
-					} else {
-						return; //skip if no valid path
 					}
 					// update status to uploaded
 					file.data.status = 'upload';
-					updateDatasetFiles(files); // update the dataset state again
+					updateDataset({ 'files': files }); // update the files of dataset
 				} catch (error) {
 					let e = `Failed to upload ${file.data.name}`;
 					showError('', e);
 					console.error(`${e} : ${error}`);
 				}
+			// link the given file
+			} else if (file.data.status === 'linkable') {
+				try {
+					// update status to linking
+					file.data.status = 'linking';
+					updateDataset({ 'files': files }); // update the files of dataset
+					// create symbolic link based on volume path
+					await datasetServices.link(id, { 'path': file.key, 'name': file.data.name });
+					// update status to uploaded
+					file.data.status = 'link';
+					updateDataset({ 'files': files }); // update the files of dataset
+				} catch (error) {
+					let e = `Failed to link ${file.data.name}`;
+					showError('', e);
+					console.error(`${e} : ${error}`);
+				}
+			// remove the given file
 			} else if (file.data.status === 'deletable') {
 				try {
 					// update status to deleting
 					file.data.status = 'deleting';
-					updateDatasetFiles(files); // update the dataset state
+					updateDataset({ 'files': files }); // update the files of dataset
 					// deletion logic based on file type (folder or file)
-					if ( (file.data.type === 'file') && file?.data?.path ) {
+					if (file.data.type === 'file' && file?.data?.path) {
 						await datasetServices.remove(id, { 'filenames': [`${file.data.path}/${file.data.name}`] });
 					} else if (file.data.type === 'folder') {
 						await datasetServices.remove(id, { 'filenames': [`${file.data.name}`] });
 					}
 					// update status to deleted
 					file.data.status = 'deleted';
-					updateDatasetFiles(files); // update the dataset state again
+					updateDataset({ 'files': files }); // update the files of dataset
 				} catch (error) {
 					let e = `Failed to delete ${file.data.name}`;
 					showError('', e);
@@ -228,14 +257,14 @@ const Dataset = (props) => {
 			}
 			// if the file has children, recursively process them
 			if (file.children && file.children.length > 0) {
-				for (let child of file.children) {
-					await processFile(child); // Recursively process each child
+				for (const child of file.children) {
+					await processFile(child); // recursively process each child
 				}
 			}
 		};
 		// iterate over all top-level files
-		for (let file of files) {
-			await processFile(file); // Process each file (and its children)
+		for (const file of files) {
+			await processFile(file); // process each file (and its children)
 		}
 	};
 
@@ -265,11 +294,11 @@ const Dataset = (props) => {
 			</div>
 		) : (
 			operation === 'view' ? (
-				<DatasetView dataset={dataset} updateDatasetFiles={updateDatasetFiles} operationDataset={selectDataset} isProcessing={isProcessing} />
+				<DatasetView dataset={dataset} updateDataset={updateDataset} operationDataset={selectDataset} isProcessing={isProcessing} />
 			) : operation === 'create' ? (
-				<DatasetCreate dataset={dataset} updateDatasetFiles={updateDatasetFiles} operationDataset={createDataset} isProcessing={isProcessing} />
+				<DatasetCreate dataset={dataset} updateDataset={updateDataset} operationDataset={createDataset} isProcessing={isProcessing} />
 			) : operation === 'update' ? (
-				<DatasetUpdate dataset={dataset} updateDatasetFiles={updateDatasetFiles} operationDataset={updateDataset} isProcessing={isProcessing} />
+				<DatasetUpdate dataset={dataset} updateDataset={updateDataset} operationDataset={editDataset} isProcessing={isProcessing} />
 			) : <></>
 		)}
 	</div>
@@ -283,9 +312,9 @@ const Dataset = (props) => {
  * DatasetView Component
  * Displays the dataset details in view mode.
  */
-const DatasetView = ({ dataset, updateDatasetFiles, operationDataset, isProcessing }) => {
+const DatasetView = ({ dataset, updateDataset, operationDataset, isProcessing }) => {
 	const name = dataset.name || '';
-	const description = dataset.description || '';
+	const description = dataset.description || '';	
 	return (
 	<>
     <div className="card-dataset">
@@ -293,7 +322,7 @@ const DatasetView = ({ dataset, updateDatasetFiles, operationDataset, isProcessi
         <small className="m-0">{description}</small>
       </Card>
     </div>
-		<DatasetFileViewer dataset={dataset} updateDatasetFiles={updateDatasetFiles} />
+		<DatasetFileViewer dataset={dataset} updateDataset={updateDataset} />
 		<div className="field dataset-submit flex justify-content-center">
 			<Button label="Select" onClick={() => operationDataset()} disabled={isProcessing} />
 		</div>
@@ -308,40 +337,40 @@ const DatasetView = ({ dataset, updateDatasetFiles, operationDataset, isProcessi
  * DatasetCreate Component
  * Form for creating a new dataset, allowing users to input name, description, and files.
  */
-const DatasetCreate = ({ dataset, updateDatasetFiles, operationDataset, isProcessing }) => {
-	// Declare states
-	const [name, setName] = useState(dataset.name || '');
-	const [description, setDescription] = useState(dataset.description || '');
+const DatasetCreate = ({ dataset, updateDataset, operationDataset, isProcessing }) => {
 	// Update states
 	const onChangeName = (e) => {
 		const newValue = e.target.value;
-		setName(newValue);
-		dataset.name = newValue; // update dataset name
+		updateDataset({ 'name': newValue }); // update the name of dataset
 	};
 	const onChangeDescription = (e) => {
 		const newValue = e.target.value;
-		setDescription(newValue);
-		dataset.description = newValue; // update dataset description
+		updateDataset({ 'description': newValue }); // update the description of dataset
 	};
+	// Manage VolumeDialog
+	const [isDialogVisible, setDialogVisible] = useState(false);
+	const openVolumeDialog = () => setDialogVisible(true);
+	const closeVolumeDialog = () => setDialogVisible(false);
 	// Render
 	return (
 	<>
 		<Panel header="Give a name for your dataset:">
 			<div className={`field dataset-name`}>
-				<InputText id={`input-text-dataset-name`} className='w-4' maxLength='50' value={name} onChange={onChangeName}/>
+				<InputText id={`input-text-dataset-name`} className='w-4' maxLength='50' value={dataset.name} onChange={onChangeName}/>
 			</div>
 		</Panel>
 		<Panel header="Describe briefly your dataset:">
 			<div className={`field dataset-description`}>
-				<InputText id={`input-text-dataset-description`} className='w-full' maxLength='150' value={description} onChange={onChangeDescription}/>
+				<InputText id={`input-text-dataset-description`} className='w-full' maxLength='150' value={dataset.description} onChange={onChangeDescription}/>
 			</div>
 		</Panel>
 		<Panel header="Add/Remove folder/files into your dataset:">
-			<DatasetFileViewer dataset={dataset} updateDatasetFiles={updateDatasetFiles} hasHeader={true} />
+			<DatasetFileViewer dataset={dataset} updateDataset={updateDataset} hasHeader={true} openVolumeDialog={openVolumeDialog} />
 		</Panel>
 		<div className="field dataset-submit flex justify-content-center">
 			<Button label="Create" onClick={() => operationDataset()} disabled={isProcessing} />
 		</div>
+		<VolumeDialog dialogVisible={isDialogVisible} hideDialog={closeVolumeDialog} dataset={dataset} updateDataset={updateDataset} />
 	</>
 	);
 };
@@ -353,40 +382,40 @@ const DatasetCreate = ({ dataset, updateDatasetFiles, operationDataset, isProces
  * DatasetUpdate Component
  * Form for updating an existing dataset.
  */
-const DatasetUpdate = ({ dataset, updateDatasetFiles, operationDataset, isProcessing }) => {
-	// Declare states
-	const [name, setName] = useState(dataset.name || '');
-	const [description, setDescription] = useState(dataset.description || '');
+const DatasetUpdate = ({ dataset, updateDataset, operationDataset, isProcessing }) => {
 	// Update states
 	const onChangeName = (e) => {
 		const newValue = e.target.value;
-		setName(newValue);
-		dataset.name = newValue; // update dataset name
+		updateDataset({ 'name': newValue }); // update the name of dataset
 	};
 	const onChangeDescription = (e) => {
 		const newValue = e.target.value;
-		setDescription(newValue);
-		dataset.description = newValue; // update dataset description
+		updateDataset({ 'description': newValue }); // update the description of dataset
 	};
+	// Manage VolumeDialog
+	const [isDialogVisible, setDialogVisible] = useState(false);
+	const openVolumeDialog = () => setDialogVisible(true);
+	const closeVolumeDialog = () => setDialogVisible(false);
 	// Render
 	return (
 	<>
 		<Panel header="Give a name for your dataset:">
 			<div className={`field dataset-name`}>
-				<InputText id={`input-text-dataset-name`} className='w-4' maxLength='50' value={name} onChange={onChangeName}/>
+				<InputText id={`input-text-dataset-name`} className='w-4' maxLength='50' value={dataset.name} onChange={onChangeName}/>
 			</div>
 		</Panel>
 		<Panel header="Describe briefly your dataset:">
 			<div className={`field dataset-description`}>
-				<InputText id={`input-text-dataset-description`} className='w-full' maxLength='150' value={description} onChange={onChangeDescription}/>
+				<InputText id={`input-text-dataset-description`} className='w-full' maxLength='150' value={dataset.description} onChange={onChangeDescription}/>
 			</div>
 		</Panel>
 		<Panel header="Add/Remove folder/files into your dataset:">
-			<DatasetFileViewer dataset={dataset} updateDatasetFiles={updateDatasetFiles} hasHeader={true} />
+			<DatasetFileViewer dataset={dataset} updateDataset={updateDataset} hasHeader={true} openVolumeDialog={openVolumeDialog} />
 		</Panel>
 		<div className="field dataset-submit flex justify-content-center">
 			<Button label="Update" onClick={() => operationDataset()} disabled={isProcessing} />
 		</div>
+		<VolumeDialog dialogVisible={isDialogVisible} hideDialog={closeVolumeDialog} dataset={dataset} updateDataset={updateDataset} />
 	</>
 	);
 };
@@ -398,10 +427,9 @@ const DatasetUpdate = ({ dataset, updateDatasetFiles, operationDataset, isProces
  * DatasetFileViewer Component
  * Responsible for displaying and selecting files within the dataset.
  */
-const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
+const DatasetFileViewer = ({ dataset, updateDataset, hasHeader, openVolumeDialog }) => {
 	
 	// Declare states
-	const [files, setFiles] = useState(dataset.files || []);
 	const [key, setKey] = useState(	dataset.files && dataset.files.length > 0 ? parseInt(dataset.files[dataset.files.length - 1].key) : 0 );
 	const [selectedKeys, setSelectedKeys] = useState({});
 	const [expandedModuleKeys, setExpandedModuleKeys] = useState({});
@@ -414,18 +442,21 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 
 	// Status template
 	const StatusMessage = ({ status }) => {
-			const severity = {
-					uploadable: 'info',
-					deletable: 'info',
-					deleting: 'warning',
-					uploading: 'warning',
-					upload: 'success',
-			}[status];
+		const severity = {
+				uploadable: 'info',
+				linkable: 'info',
+				deletable: 'info',
+				deleting: 'warning',
+				uploading: 'warning',
+				linking: 'warning',
+				upload: 'success',
+				link: 'success',
+		}[status];
 
-			return <Tag rounded value={status} severity={severity} />;
+		return <Tag rounded value={status} severity={severity} />;
 	};
 	const statusBodyTemplate = (rowData) => {
-			return rowData['data'].status ? <StatusMessage status={rowData['data'].status} /> : <></>;
+		return rowData['data'].status ? <StatusMessage status={rowData['data'].status} /> : <></>;
 	};
 
 
@@ -440,7 +471,8 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 					baseFolderName = folderName.slice(0, lastUnderscoreIndex); // folder name until last underscore
 					suffix = parseInt(folderName.slice(lastUnderscoreIndex + 1), 10); // extract numeric suffix
 			}
-			const existingFolderNames = files.map((file) => file.data.name);
+			// const existingFolderNames = files.map((file) => file.data.name);
+			const existingFolderNames = dataset.files.map((file) => file.data.name);
 			while (existingFolderNames.includes(folderName)) {
 					suffix += 1;
 					folderName = `${baseFolderName}_${suffix}`; // ensure unique folder name
@@ -452,6 +484,7 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 					data: {
 						name: folderName,
 						type: 'folder',
+						status: 'uploadable',
 						checked: false,
 						size: null
 					},
@@ -460,17 +493,16 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 							data: {
 									name: file.name,
 									type: 'file',
-									size: globalServices.formatFileSize(file.size),
 									status: 'uploadable',
 									checked: false,
+									size: globalServices.formatFileSize(file.size),
 									path: folderName,
 									object: file,
 							},
 					})),
 			};
-			const updatedFiles = [...files, folderNode];
-			setFiles(updatedFiles);
-			updateDatasetFiles(updatedFiles);
+			const updatedFiles = [...dataset.files, folderNode];
+			updateDataset({ 'files': updatedFiles });
 	};
 
 
@@ -493,9 +525,8 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 			};
 		});
 		setKey(currentKey);
-		const updatedFiles = [...files, ...fileNodes];
-		setFiles(updatedFiles);
-		updateDatasetFiles(updatedFiles);
+		const updatedFiles = [...dataset.files, ...fileNodes];
+		updateDataset({ 'files': updatedFiles });
 	};
 
 
@@ -503,14 +534,14 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 	const removeInputs = (selectedKeys) => {
 		if (!selectedKeys || Object.keys(selectedKeys).length === 0) return;
 		// use extractCheckedFiles to get the fully checked files
-		const fullySelectedFiles = extractCheckedFiles(selectedKeys, files);
+		const fullySelectedFiles = extractCheckedFiles(selectedKeys, dataset.files);
 		// mark selected files as deletable
 		const markFilesAsDeletable = (file) => {
 			if (file?.data?.checked) {
-				if (('status' in file.data && file.data.status === 'upload') || ('type' in file.data && file.data.type === 'folder')) {
+				if (('status' in file.data && (file.data.status === 'upload' || file.data.status === 'link'))) {
 					file.data.status = 'deletable';
-				} else if (('status' in file.data && file.data.status === 'uploadable') || ('type' in file.data && file.data.type === 'folder')) {
-					return null; // remove files with 'uploadable' status
+				} else if (('status' in file.data && (file.data.status === 'uploadable' || file.data.status === 'linkable'))) {
+					return null; // remove files with 'uploadable' and 'linkable' status
 				}
 			}
 			if (file.children && file.children.length > 0) {
@@ -534,8 +565,7 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 		};
 		// update states
 		updatedFiles = reorderKeys(updatedFiles);
-		setFiles(updatedFiles);
-		updateDatasetFiles(updatedFiles);
+		updateDataset({ 'files': updatedFiles });
 		setSelectedKeys({});
 	};
 
@@ -580,7 +610,6 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 			const files = Array.from(event.target.files);
 			addMultipleFiles(controlFiles(files));
 	};
-
 	const handleFolderSelection = (event) => {
 			const files = Array.from(event.target.files);
 			addFilesFolder(controlFiles(files));
@@ -589,7 +618,6 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 	const triggerFileSelection = () => {
 			fileInputRef.current.click();
 	};
-
 	const triggerFolderSelection = () => {
 			folderInputRef.current.click();
 	};
@@ -599,9 +627,9 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 	const handleSelectionChange = (e) => {
 		const selectedKeys = e.value;
 		setSelectedKeys(selectedKeys); // update local selection state
-		// Update the dataset's checked attribute based on selection
-		const updatedFiles = extractCheckedFiles(selectedKeys, files);
-		updateDatasetFiles(updatedFiles); // update the parent component with the modified files
+		// update the dataset's checked attribute based on selection
+		const updatedFiles = extractCheckedFiles(selectedKeys, dataset.files);
+		updateDataset({ 'files': updatedFiles }); // update the parent component with the modified files
 	};
 
 
@@ -615,11 +643,12 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 	const header = (
 		hasHeader ? (
 			<div className="header-button justify-content-start">
-				<Button icon="pi pi-file-plus" rounded raised onClick={triggerFileSelection} />
+				<Button icon="pi pi-cloud-upload" rounded raised tooltip="Add files from volume(s)" tooltipOptions={{position:'left'}} onClick={openVolumeDialog} />
+				<Button icon="pi pi-file-plus" rounded raised tooltip="Add file from local disk" tooltipOptions={{position:'top'}}  onClick={triggerFileSelection} />
 				<input ref={fileInputRef} type="file" multiple style={{ display: 'none' }} onChange={handleFileSelection} />
-				<Button icon="pi pi-folder-plus" rounded raised onClick={triggerFolderSelection} />
+				<Button icon="pi pi-folder-plus" rounded raised tooltip="Add all files from local folder" tooltipOptions={{position:'top'}} onClick={triggerFolderSelection} />
 				<input ref={folderInputRef} type="file" webkitdirectory="true" style={{ display: 'none' }} onChange={handleFolderSelection} />
-				<Button icon="pi pi-minus" severity="danger" rounded raised onClick={() => removeInputs(selectedKeys)} />				
+				<Button icon="pi pi-minus" severity="danger" rounded raised tooltip="Remove files" tooltipOptions={{position:'top'}} onClick={() => removeInputs(selectedKeys)} />				
 			</div>
 			) : <></>
 	);
@@ -629,7 +658,7 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 		<TreeTable
 			selectionMode="checkbox"
 			scrollable
-			value={files}
+			value={dataset.files}
 			header={header}
 			selectionKeys={selectedKeys}
 			onSelectionChange={handleSelectionChange}
@@ -644,6 +673,28 @@ const DatasetFileViewer = ({ dataset, updateDatasetFiles, hasHeader }) => {
 		</TreeTable>
 	</div>
 	);
+};
+
+
+
+/**
+ * DatasetExplorerDialog
+ * Creates dialog with the Dataset Explorer.
+ */
+const VolumeDialog = ({ dialogVisible, hideDialog, dataset, updateDataset }) => {
+
+	// dialog with dynamic content
+	return (
+		<Dialog 
+			header="Select folder/files from volumes"
+			visible={dialogVisible} 
+			style={{ width: 'calc(100vw - 100px)', height: 'calc(100vw - 100px)' }} // full-window dialog with 50px margin on each side
+			onHide={hideDialog}
+			modal
+		>
+			<Volumes hideDialog={hideDialog} dataset={dataset} updateDataset={updateDataset} />
+		</Dialog>
+  );
 };
 
 

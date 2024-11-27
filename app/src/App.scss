@@ -193,14 +193,16 @@
 
 .table-pipelines,
 .table-workflows,
-.table-datasets {
+.table-datasets,
+.table-volumes {
   margin: 20px 20px;
   min-width: 900px;
 }
 
 .table-pipelines *,
 .table-workflows *,
-.table-datasets * {
+.table-datasets *,
+.table-volumes * {
   font-size: var(--nl-font-size);
 }
 
@@ -282,6 +284,17 @@
   font-size: var(--nl-font-size);
 }
 
+
+/* table volumes */
+
+.table-datasets .p-dialog-header {
+  
+}
+
+.table-volumes .highlight-row {
+  background-color: #f0f8ff; /* Light blue background */
+  font-weight: bold;
+}
 
 
 /*
@@ -470,6 +483,13 @@
 // .report-dataset .p-dropdown-panel .p-dropdown-item {
 //   font-size: var(--nl-font-size);
 // }
+
+
+/*
+ * REPORT: VOLUME
+ */
+
+
 
 
 

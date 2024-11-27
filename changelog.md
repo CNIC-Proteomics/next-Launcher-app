@@ -1,4 +1,22 @@
 ___
+## 0.1.3
+```
+DATE: 2024_XX
+```
+
+### Highlights
+
++ The Dataset components have been included.
+
++ The DatasetExplorer has been created.
+
++ The Workflow component uses the DatasetExplorer.
+
++ Explore the Volume folders.
+
+### Changes in detail
+
+___
 ## 0.1.2
 ```
 DATE: 2024_08
