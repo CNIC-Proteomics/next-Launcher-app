@@ -1,10 +1,10 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema",
 	"$id": "https://raw.githubusercontent.com/CNIC-Proteomics/nf-SearchEngine/main/nextflow_schema.json",
-	"title": "SearchEngine",
-	"description": "Nextflow for the SearchEngine pipeline.",
+	"title": "SearchEngine:Raw",
+	"description": "Nextflow for the SearchEngine pipeline using raw files",
 	"url": "https://github.com/CNIC-Proteomics/nf-SearchEngine",
-	"revision": "0.1.1",
+	"revision": "0.1.2",
 	"icon": "",
 	"status": 0,
 	"type": "object",
@@ -16,6 +16,7 @@
 					"description": "Inputs and outputs required for the pipeline",
 					"required": [
 							"raw_files",
+							"create_mzml",
 							"database",
 							"add_decoy",
 							"decoy_prefix"
@@ -30,6 +31,15 @@
 									"format": "directory-path",
 									"default": "",
 									"mimetype": "text/plain"
+							},
+							"create_mzml": {
+								"title": "Craete mzML",
+								"description": "Generate the mzML's files from the RAW's",
+								"help_text": "Under construction...",
+								"fa_icon": "pi pi-pen-to-square",
+								"type": "boolean",
+								"format": "boolean",
+								"default": true
 							},
 							"database": {
 									"title": "Protein database",

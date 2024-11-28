@@ -6,7 +6,7 @@
 "url": "https://github.com/CNIC-Proteomics/nf-PTM-compass",
 "revision": "0.1.0",
 "icon": "",
-"status": 0,
+"status": 1,
 "type": "object",
 "definitions": {
     "input_output_options": {

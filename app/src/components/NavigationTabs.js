@@ -2,14 +2,8 @@
  * Import libraries
  */
 
-import React, {
-  useState,
-  useEffect
-} from 'react';
-import {
-  Link,
-  useLocation
-} from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 
 /*
@@ -17,36 +11,39 @@ import {
  */
 
 const NavigationTabs = () => {
+  // Declare states
   const location = useLocation();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const items = [{
-    label: 'Main',
-    icon: 'pi pi-home',
-    to: '/'
-  },{
-    label: 'Datasets',
-    icon: 'pi pi-database',
-    to: '/datasets'
-  },{
-    label: 'Pipelines',
-    icon: 'pi pi-sitemap',
-    to: '/pipelines'
-  },{
-    label: 'Workflows',
-    icon: 'pi pi-list',
-    to: '/workflows'
-  }];
+  // Memoize the items array to avoid it being re-created on every render
+  const items = useMemo(() => [
+    {
+      label: 'Main',
+      icon: 'pi pi-home',
+      to: '/',
+    },
+    {
+      label: 'Datasets',
+      icon: 'pi pi-database',
+      to: '/datasets',
+    },
+    {
+      label: 'Pipelines',
+      icon: 'pi pi-sitemap',
+      to: '/pipelines',
+    },
+    {
+      label: 'Workflows',
+      icon: 'pi pi-list',
+      to: '/workflows',
+    },
+  ], []);
 
   useEffect(() => {
-      const pathToIndex = {
-          '/': 0,
-          '/datasets': 1,
-          '/pipelines': 2,
-          '/workflows': 3
-      };
-      setActiveIndex(pathToIndex[location.pathname]);
-  }, [location]);
+    // Match the active tab based on the current path prefix. Ensure 'Main' is only selected for the exact '/'
+    const index = items.findIndex((item, idx) => idx === 0 ? location.pathname === item.to : location.pathname.startsWith(item.to) );
+    setActiveIndex(index !== -1 ? index : 0); // Default to 0 if no match
+  }, [location, items]);
 
   return (
       <div className="header">

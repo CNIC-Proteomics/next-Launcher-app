@@ -1,12 +1,12 @@
 {
 "$schema": "http://json-schema.org/draft-07/schema",
 "$id": "https://raw.githubusercontent.com/CNIC-Proteomics/nf-PTM-compass/main/nextflow_schema.json",
-"title": "PTM-compass:ReCom",
-"description": "Nextflow for the PTM-compass pipeline using ReCom results as input",
+"title": "PTM-compass",
+"description": "Nextflow for the PTM-compass pipeline using RefMod results as input",
 "url": "https://github.com/CNIC-Proteomics/nf-PTM-compass",
-"revision": "0.1.0",
+"revision": "0.1.1",
 "icon": "",
-"status": 1,
+"status": 0,
 "type": "object",
 "definitions": {
     "input_output_options": {
@@ -15,16 +15,16 @@
         "fa_icon": "pi pi-box",
         "description": "Inputs and outputs required for the pipeline",
         "required": [
-            "recom_files",
+            "msf_files",
             "exp_table",
             "database",
             "decoy_prefix",
             "outdir"
         ],
         "properties": {
-            "recom_files": {
-                "title": "ReCom results",
-                "description": "ReCom result files",
+            "msf_files": {
+                "title": "MSFragger results",
+                "description": "MSFragger files",
                 "help_text": "Under construction...",
                 "fa_icon": "pi pi-folder",
                 "type": "string",

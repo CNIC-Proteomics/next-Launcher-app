@@ -6,7 +6,7 @@
 "url": "https://github.com/CNIC-Proteomics/nf-ReFrag",
 "revision": "0.1.0",
 "icon": "",
-"status": 1,
+"status": 2,
 "type": "object",
 "definitions": {
     "input_output_options": {
