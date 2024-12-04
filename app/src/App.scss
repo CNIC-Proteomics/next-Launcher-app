@@ -287,10 +287,15 @@
 
 /* table volumes */
 
-.table-datasets .p-dialog-header {
-  
+.table-volumes {
+  margin: 0;
 }
-
+.p-dialog-content:has(.table-volumes) {
+  padding: 0 0.5rem 1rem 0.5rem;
+}
+.table-volumes .volume-submit {
+  margin-bottom: 10px;
+}
 .table-volumes .highlight-row {
   background-color: #f0f8ff; /* Light blue background */
   font-weight: bold;
@@ -415,6 +420,9 @@
 .report-dataset .p-panel {
   margin-bottom: 10px;
 }
+.report-dataset .p-panel-content {
+  padding: 0.7rem;
+}
 .report-dataset .p-panel-header {
   font-size: var(--nl-font-size);
 }
@@ -451,7 +459,7 @@
   margin-right: 5px;
 }
 .report-dataset .p-treetable-scrollable-body {
-  height: 300px;
+  height: 285px;
   max-height: 300px;
 }
 // card
@@ -462,7 +470,10 @@
 .card-dataset .p-card-content {
   padding: 0.3rem 0;
 }
-
+// button
+.dataset-submit {
+  margin-bottom: 7px;
+}
 
 // // paginator
 // .report-dataset  .p-paginator * {

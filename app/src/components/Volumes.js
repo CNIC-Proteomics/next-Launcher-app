@@ -20,9 +20,10 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 
   // Define columns
 	const columns = [
-		{ field: 'name', header: 'Name', expander: true },
+		{ field: 'name', header: 'Name', expander: true, filter: true, filterPlaceholder: 'Filter by name' },
+		{ field: 'description', header: 'Description' },
 		{ field: 'type', header: 'Type' },
-		{ field: 'size', header: 'Size' }
+		// { field: 'size', header: 'Size' }
 	];
 
 
@@ -53,6 +54,7 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 					data: {
 						id: file.data.id,
 						name: file.data.name,
+						description: file.data?.meta && file.data?.meta?.description ? file.data?.meta?.description : '',
 						type: file.data.type === "folder" ? file.data.type : 'file',
 						status: 'linkable',
 						checked: false,
@@ -68,7 +70,7 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
       const data = await volumeServices.get();
       if ( data !== null ) {
         setVolumes(transformData(data));
-        setLoading(false);	
+        setLoading(false);
       }
 		} catch (error) {
       console.error('Error fetching volumes:', error);
@@ -87,6 +89,7 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 					data: {
 						id: file.data.id,
 						name: file.data.name,
+						description: file.data?.meta && file.data?.meta?.description ? file.data?.meta?.description : '',
 						type: file.data.type === "folder" ? file.data.type : 'file',
 						status: 'linkable',
 						checked: false,
@@ -148,12 +151,12 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 
 
 	// Update dataset files/folders from the selected volumes
-  const handleSelectVolumeFilesFolders = () => {
+	const handleSelectVolumeFilesFolders = () => {
 		// recursive function to find and clean node data
 		const findAndCleanNodeData = (key, nodes, parentLinkable = false) => {
 			for (let node of nodes) {
-      	// skip empty nodes
-      	if (!node || Object.keys(node).length === 0) continue;
+				// skip empty nodes
+				if (!node || Object.keys(node).length === 0) continue;
 				if (node.key === key) {
 					// update node status if parent is linkable
 					if (parentLinkable) {
@@ -183,25 +186,49 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 			}
 			return null; // key not found
 		};
-  	// filter keys where `checked: true`
-  	const checkedKeys = Object.keys(selectedKeys).filter(
-    	(key) => key !== 'undefined' && selectedKeys[key].checked === true
-  	);
-		// sort keys to ensure parent keys appear before children
+
+		// 1. filter keys where `checked: true`
+		const checkedKeys = Object.keys(selectedKeys).filter(
+			(key) => key !== 'undefined' && selectedKeys[key].checked === true
+		);
+
+		// 2. sort keys to ensure parent keys appear before children
 		checkedKeys.sort();
-		// filter to get parent keys
-		const parentKeys = checkedKeys.filter(
-			(key) => {
-				return !checkedKeys.some(
-					(otherKey) => otherKey !== key && key.startsWith(otherKey + '/'));
-		});
-		// map checked keys to their respective cleaned data
+
+		// 3. filter to get parent keys (if contain files) and the individual files
+		const parentKeys = (() => {
+			const folders = new Set();
+			const files = [];	
+			// classify paths as files or folders
+			checkedKeys.forEach(path => {
+				const lastSegment = path.split('/').pop();
+				if (lastSegment.includes('.')) { files.push(path) }
+				else { folders.add(path) }
+			});
+			// filter folders containing files
+			const foldersWithFiles = Array.from(folders).filter(folder => 
+				files.some(file => {
+					const relativePath = file.replace(folder + '/', '');
+					return file.startsWith(folder) && !relativePath.includes('/');
+				})
+			);	
+			// filter files whose parent folder is not in the folders list
+			const standaloneFiles = files.filter(file => {
+				const parentFolder = file.split('/').slice(0, -1).join('/');
+				return !folders.has(parentFolder);
+			});
+			// combine results into a single list
+			return [...foldersWithFiles, ...standaloneFiles];
+		})();
+
+		// 4. map checked keys to their respective cleaned data
 		const selectedItems = parentKeys.map((key) => findAndCleanNodeData(key, volumes)).filter(Boolean); // remove null values for deleted nodes;
-  	// update dataset files
-  	const updatedFiles = [...dataset.files, selectedItems].flat();
+
+		// 5. update dataset files
+		const updatedFiles = [...dataset.files, selectedItems].flat();
 		updateDataset({ 'files': updatedFiles });
 		hideDialog();
-  };
+	};	
 
 
 	// The expandToPath function allows a React component to navigate through a tree structure (volumes) based on a given folder path.
@@ -270,13 +297,20 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 			setVolumes(updatedVolumes);
 			setSelectedKeys({ [lastNodeKey]: true }); // highlight the selected row
 
-			// scroll to the last opened folder and highlight it
+			// scroll to the last opened folder and highlight its parent row
 			setTimeout(() => {
-				// Find the row using a unique attribute
-				const row = document.querySelector(`[data-key="${lastNodeKey}"]`);
-				if (row) {
-					row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-					row.classList.add('highlight-row'); // add a class for highlighting
+				// extract the last segment of the path from lastNodeKey
+				const lastSegment = lastNodeKey.split('/').pop();
+				// use querySelectorAll to find all 'td' elements, then locate the one with matching text content
+				const rows = document.querySelectorAll('.table-volumes td');
+				const targetCell = Array.from(rows).find(td => td.textContent.trim() === lastSegment);
+				if (targetCell) {
+					// find the parent 'tr' of the matching 'td'
+					const row = targetCell.closest('tr');
+					if (row) {
+						row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						row.classList.add('highlight-row'); // add a class for highlighting
+					}
 				}
 			}, 100);
 
@@ -288,12 +322,33 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 
 
 	// Update dataset files/folders from the selected volumes
-  const getSpecificPath = () => {
-    if (searchPath) {
-      expandToPath(searchPath);
-    }
-  };
+	const getSpecificPath = async () => {
+		if (searchPath) {
+			setLoading(true);
+			try {
+				await expandToPath(searchPath);
+			} catch (error) {
+				console.error('Error in getSpecificPath:', error);
+				showError('', 'An error occurred while navigating to the specified path.');
+			} finally {
+				setLoading(false);
+			}
+		}
+	};
+
+
+	// Update the selected files based on the selection change
+	const handleSelectionChange = (e) => {
+		setSelectedKeys(e.value);
+		setIsSelected(Object.keys(e.value).length > 0);
+	};
+
 	
+	// Functions that freeze the elements opened in the file tree (viewer)
+	const handleModuleExpand = (e) => {
+		setExpandedModuleKeys(e.value);
+	};
+
 
 	// Create the header
   const header = (
@@ -311,19 +366,6 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 
 
 	
-	// Update the selected files based on the selection change
-  const handleSelectionChange = (e) => {
-    setSelectedKeys(e.value);
-    setIsSelected(Object.keys(e.value).length > 0);
-  };
-
-
-	// Functions that freeze the elements opened in the file tree (viewer)
-	const handleModuleExpand = (e) => {
-		setExpandedModuleKeys(e.value);
-	};
-
-
 	// Add rowClassName for conditional styling
   const rowClassName = (node) => {
 		if ( node ) {
@@ -343,7 +385,7 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
     }
 		// dynamically calculate height based on window sice
     const updateScrollHeight = () => {
-      const newHeight = window.innerHeight - 432; // adjust the subtraction value as needed
+      const newHeight = window.innerHeight - 477; // adjust the subtraction value as needed
       setScrollHeight(`${newHeight}px`);
     };
     // set initial height
@@ -379,7 +421,15 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 				>
 					{/* Render columns explicitly */}
 					{columns.map((col, i) => (
-						<Column className="short-column" key={col.field} field={col.field} header={col.header} expander={col.expander} filter filterPlaceholder={`Filter by ${col.field}`}/>
+						<Column
+							className="short-column"
+							key={col.field}
+							field={col.field}
+							header={col.header}
+							expander={col.expander}
+							filter={col.filter}
+							filterPlaceholder={col.filter ? col.filterPlaceholder : undefined}
+						/>
 					))}
 				</TreeTable>
 			</div>

@@ -87,11 +87,23 @@ export const DatasetExplorerDialog = ({ pName, property, postData }) => {
 
 	// Handler to switch to dataset view when "Open" is clicked
 	const selectDatasetFile = (dataset) => {
+
+		// Recursive function to collect all files, including those in children
+		const getAllFiles = (files) => {
+			let allFiles = [];
+			files.forEach(file => {
+				if (file.data.type === 'file') { allFiles.push(file); }
+				if (file.children && file.children.length > 0) { allFiles = allFiles.concat(getAllFiles(file.children)); }
+			});
+			return allFiles;
+		};
+
 		let selectedFileOrFolder = null;
 		// Check if property.type is either 'file-path' or 'folder-path'
 		if (property.format === 'file-path') {
-			// find the checked file from dataset.files. Make sure we are looking at files. Only checked files
-			const checkedFiles = dataset.files.filter(file => file.data.type !== 'folder').filter(file => file.data.checked === true);
+			// flatten the file structure and find all checked files
+			const allFiles = getAllFiles(dataset.files);
+			const checkedFiles = allFiles.filter(file => file.data.checked === true);
 			if (checkedFiles.length === 1) {
 				let { path, name } = checkedFiles[0].data;
 				selectedFileOrFolder = `${dataset._id}/${path === '.' ? '' : path + '/'}${name}`;
@@ -112,14 +124,6 @@ export const DatasetExplorerDialog = ({ pName, property, postData }) => {
 			const newValue = selectedFileOrFolder;
 			setDatasetValue(newValue);
 			// update the postData with the new value
-			// setPostData((prevData) => ({
-			// 	...prevData,
-			// 	[property.title]: {
-			// 			name: `--${pName}`,
-			// 			type: property.format,
-			// 			value: newValue,
-			// 	},
-			// }));
 			postData[property.title] = {
 				'name': `--${pName}`,
 				'type': property.format,
@@ -138,12 +142,24 @@ export const DatasetExplorerDialog = ({ pName, property, postData }) => {
 	];
 
 
+	// Handler to update datasetValue from InputText
+	const handleInputChange = (e) => {
+		const newValue = e.target.value;
+		setDatasetValue(newValue);
+		// update the postData with the new value
+		postData[property.title] = {
+			'name': `--${pName}`,
+			'type': property.format,
+			'value': newValue,
+		};
+	};
+
 	// Render
 	return (
 		<div className="flex flex-column gap-2">
 			<label>{property.description}</label>
 			<div className="single-file-dataset p-inputgroup flex">
-				<InputText value={datasetValue} readOnly />
+				<InputText value={datasetValue} onChange={handleInputChange} />
 				<Button 
 					label="Browse" 
 					icon="pi pi-cloud-upload" 

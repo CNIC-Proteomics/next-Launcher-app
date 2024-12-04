@@ -1,7 +1,7 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema",
 	"$id": "https://raw.githubusercontent.com/CNIC-Proteomics/nf-SearchEngine/main/nextflow_schema.json",
-	"title": "SearchEngine:Raw",
+	"title": "SearchEngine",
 	"description": "Nextflow for the SearchEngine pipeline using raw files",
 	"url": "https://github.com/CNIC-Proteomics/nf-SearchEngine",
 	"revision": "0.1.2",
@@ -24,7 +24,7 @@
 					"properties": {
 							"raw_files": {
 									"title": "MS data",
-									"description": "MS data files (.raw format)",
+									"description": "MS data files (.raw format and .mzML format)",
 									"help_text": "Under construction...",
 									"fa_icon": "pi pi-folder",
 									"type": "string",
@@ -33,7 +33,7 @@
 									"mimetype": "text/plain"
 							},
 							"create_mzml": {
-								"title": "Craete mzML",
+								"title": "Create mzML",
 								"description": "Generate the mzML's files from the RAW's",
 								"help_text": "Under construction...",
 								"fa_icon": "pi pi-pen-to-square",
