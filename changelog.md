@@ -1,7 +1,20 @@
 ___
+## 0.1.4
+```
+DATE: 2024_12
+```
+
+### Highlights
+
++ New nextflow versions.
+
+### Changes in detail
+
+
+___
 ## 0.1.3
 ```
-DATE: 2024_11
+DATE: 2024_12
 ```
 
 ### Highlights
