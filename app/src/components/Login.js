@@ -85,7 +85,7 @@ const Login = () => {
   
         <div className='w-full md:w-5 flex align-items-center justify-content-center py-5'>
           <Button
-            label='Login as Guess'
+            label='Login as Guest'
             icon='pi pi-sign-in'
             severity='help'
             className='w-10rem'
