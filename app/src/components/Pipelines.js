@@ -62,6 +62,7 @@ const Pipelines = () => {
       id: data.$id,
       status: <StatusIcon status={data.status} />,
       title: data.title,
+      revision: data.revision,
       description: data.description,
       url: <UrlLink url={data.url} />,
       action: <LunchButton data={data} auth={auth} />
@@ -76,6 +77,7 @@ const Pipelines = () => {
   const columns = [
     { field: 'status', header: 'Status' },
     { field: 'title', header: 'Title' },
+    { field: 'revision', header: 'Release' },
     { field: 'description', header: 'Description' },
     { field: 'url', header: 'URL' },
     { field: 'action', header: 'Action' },
