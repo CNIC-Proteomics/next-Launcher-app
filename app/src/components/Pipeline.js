@@ -2,15 +2,18 @@
  * Import libraries
  */
 
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { useParams,	useHistory } from 'react-router-dom';
 import { PanelMenu } from 'primereact/panelmenu';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
+import { ProgressSpinner } from 'primereact/progressspinner';
 
-import { showInfo, showWarning } from '../services/toastServices';
+import { PIPELINES_LIST } from '../constants';
+import { showInfo, showWarning, showError } from '../services/toastServices';
 import { userServices } from '../services/userServices';
 import { workflowServices } from '../services/workflowServices';
+import * as globalServices from '../services/globalServices';
 import { DescriptionParameter, DatasetExplorerDialog, StringParameter, BooleanParameter } from './Parameters';
 
 
@@ -23,56 +26,80 @@ import { DescriptionParameter, DatasetExplorerDialog, StringParameter, BooleanPa
 
 
 /* Create the Pipeline panels */
-const Pipeline = (data) => {
+const Pipeline = () => {
 
 
 	// Declare context
 	const { auth } = useContext(userServices);
 
-	// Capture data from URL
-	const { pipelineName } = useParams();
-
+	// Capture all possible params from URL
+	const { pipelineName, workflowId, attemptId } = useParams();
 
 	// Declare states
+	const [loading, setLoading] = useState(true);
 	const [schemaData, setSchemaData] = useState(null);
 	const [requiredFields, setRequiredFields] = useState(null);
-	// const [ workflowId, setWorkflowId ] = useState(null);
+	const [workflow, setWorkflow] = useState({});
+	const [attempt, setAttempt] = useState({});
 	const [ postDescription ] = useState({});
 	const [ postData, setPostData ] = useState({});
 	const [ disabledLaunch, setDisabledLaunch ] = useState(true);
 	const [ navigate, setNavigate ] = useState(false);
 	const history = useHistory();
+	// create references to track if data has been fetched
+	const hasWorkflowData = useRef(false);
 
 
-  // Fetch schema data (if not passed in state) and set it in state
-  useEffect(() => {
-    if (data.location.state?.schema) {
-      setSchemaData(data.location.state.schema);
-    }
-  }, [data.location.state?.schema]);
+	// Fetch required fields depending on the kinds of inputs
+	useEffect(() => {
 
-
-  // Fetch required fields
-  useEffect(() => {
-    if (schemaData) {
-			// let requiredFields = [];
-			// Object.keys(schemaData.definitions).forEach((definitionKey) => {
-			// 		const definition = schemaData.definitions[definitionKey];
-			// 		if (definition.required) {
-			// 			requiredFields.push(...definition.required);
-			// 		}
-			// });
+		// create a pipeline
+		if (pipelineName) {
+			// find the JSON file that matches the pipeline name
+			const schema = PIPELINES_LIST.find((p) => p.title === pipelineName);
+			setSchemaData(schema);
+			setLoading(false);
+			// fetch the required fields
 			const getRequiredTitles = (schema) => {
 				return Object.values(schema.definitions || {}).flatMap(def =>
 					(def.required || []).map(req => def.properties[req]?.title)
 				).filter(Boolean);
 			};
-			let requiredFields = getRequiredTitles(schemaData);
+			let requiredFields = getRequiredTitles(schema);
 			// get unique values and remove 'outdir' element
 			requiredFields = [...new Set(requiredFields)].filter((value) => value !== 'Output directory');
-			setRequiredFields(requiredFields);	
-    }
-  }, [schemaData]);
+			setRequiredFields(requiredFields);
+		}
+
+		// update workflows
+		if (workflowId && attemptId) {
+			// make the GET request to get the log
+			const getWorkflowData = async (workflowId) => {
+				try {
+					const result = await workflowServices.get(workflowId);
+					if (result) {
+						setWorkflow(result);
+						setLoading(false);
+						// set the info of attempt execution
+						setAttempt(globalServices.getAttemptById(result, attemptId));
+					}
+					else {
+						showError('', 'The workflow info was not obtained correctly');
+						console.error('The workflow info was not obtained correctly.');
+					}
+				} catch (error) {
+					setLoading(false);
+					console.error('Error getting workflow info:', error);
+				}
+			};
+			// get the workflow data
+			if (!hasWorkflowData.current) {
+				getWorkflowData(workflowId);
+				hasWorkflowData.current = true; // mark as fetched
+			}
+		}
+
+	}, [pipelineName, workflowId, attemptId]);
 
 
 	// Navigate to new page
@@ -88,10 +115,10 @@ const Pipeline = (data) => {
 	// Validate if all required fields are filled in the POST data
 	useEffect(() => {
 		if (requiredFields) {
-				// check if all required fields are present and non-empty in postData
+			// check if all required fields are present and non-empty in postData
 			const validateRequiredFields = (requiredFields, postData) => {
 				return requiredFields.every((field) => postData[`--${field}`] && postData[`--${field}`] !== '');
-			};		
+			};
 			const allRequiredFieldsFilled = validateRequiredFields(requiredFields, postData);
 			setDisabledLaunch(!allRequiredFieldsFilled);
 			setDisabledLaunch(false); // FORCE the flag. It is a problem using the setPostData in the useEffect from Paramneters components
@@ -101,36 +128,60 @@ const Pipeline = (data) => {
 
 	// Lauch Pipeline
 	const launchWorkflow = async () => {
-    // Check that all parameters are filled in and that the files are uploaded
-    let allValid = true;
-    // Validate all workflow fields: the object has to be full (not empty)
+		// Check if it is a re-launch
+		let resume = false
+		if (workflowId && workflow && attempt && Object.keys(workflow).length > 0 && Object.keys(attempt).length > 0) {
+			resume = true;
+		}
+		// Check that all parameters are filled in and that the files are uploaded
+		let allValid = true;
+		// Validate the workflow (attempt) description and get the value
 		let key = 'Description';
+		let attemptDescription = '';
 		if ( !(key in postDescription) ) {
 			allValid = false;
 			showWarning('',`Please fill in the '${key}' field.`);
 		}
-    // Validate all input fields: the object has to be full (not empty)
-    for (let key of requiredFields) {
+		else {
+			attemptDescription = postDescription[key]['description'] || '';
+		}
+		// Validate all input fields: the object has to be full (not empty)
+		for (let key of requiredFields) {
 			if ( !(key in postData) ) {
-        allValid = false;
-        showWarning('',`Please fill in the '${key}' field.`);
-      }
-    }
-    // Launch process here
-    if (allValid) {
+				allValid = false;
+				showWarning('',`Please fill in the '${key}' field.`);
+			}
+		}
+		// Launch process here
+		if (allValid) {
 			let dataPOST = {
 				author: auth.username,
 				profiles: auth.role,
 				name: schemaData.title,
+				description: schemaData.description,
 				pipeline: schemaData.url,
 				revision: schemaData.revision,
-				...Object.values(postDescription)[0]
 			};
-			const result_create = await workflowServices.create(dataPOST);
-			if (result_create && result_create._id) {
-				const workflowId = result_create._id;
-				let inputsPOST = { 'inputs': Object.values(postData) };
-				const result_launch = await workflowServices.launch(workflowId, inputsPOST);
+			// If it is a re-launch (resume execution). then, use workflowId
+			// Otherwise, it is new workflow execution
+			let wId = null;
+			if ( resume && workflowId ) {
+				wId = workflowId;
+			}
+			else {
+				let result_create = await workflowServices.create(dataPOST);
+				if (result_create && result_create._id) {
+					wId = result_create._id;
+				}
+			}
+			// Launch the workflow
+			if ( wId ) {
+				let inputsPOST = {
+					'description': attemptDescription,
+					'inputs': Object.values(postData),
+					'resume': resume
+				};
+				const result_launch = await workflowServices.launch(wId, inputsPOST);
 				showInfo('', result_launch.message);
 				setNavigate(true); // set state to trigger navigation	
 			}
@@ -140,32 +191,32 @@ const Pipeline = (data) => {
 
 	// Render
 	return (
-		schemaData? (
-			<>
-			<div className='parameters'>
-			<div className="grid">
-				<div className="col-3">
-					<SideMenu
-						definitions={schemaData.definitions}
-						launchWorkflow={launchWorkflow}
-						disabledLaunch={disabledLaunch}
-					/>
-				</div>
-				<div className="col-9">
-					<DescriptionParameter
-						title={pipelineName}
-						postData={postDescription}
-					/>
-					<Properties
-						definitions={schemaData.definitions}
-						setPostData={setPostData}
-						postData={postData}
-					/>
+		loading ? (
+			<div className="flex justify-content-center flex-wrap">
+				<ProgressSpinner />
+			</div>
+		) : schemaData && workflow && attempt ? (
+			<div className="parameters">
+				<div className="grid">
+					<div className="col-3">
+						<SideMenu
+							definitions={schemaData.definitions}
+							launchWorkflow={launchWorkflow}
+							disabledLaunch={disabledLaunch}
+						/>
+					</div>
+					<div className="col-9">
+						<DescriptionParameter title={pipelineName} postData={postDescription} defaultValue={attempt.description} />
+						<Properties
+							definitions={schemaData.definitions}
+							attempt={attempt}
+							setPostData={setPostData}
+							postData={postData}
+						/>
+					</div>
 				</div>
 			</div>
-			</div>
-		</>
-		): (<p>The pipeline schema is required</p>)
+		) : (<p>The pipeline schema is required</p>)
 	);
 };
 
@@ -226,7 +277,7 @@ const SideMenu = ({ definitions, launchWorkflow, disabledLaunch }) => {
  * Properties
  * Create the "Properties" of parameters
  */
-const Properties = ({ definitions, setPostData, postData }) => {
+const Properties = ({ definitions, attempt, setPostData, postData }) => {
 
 	// Create the panel header
 	const header = (definition) => {
@@ -238,7 +289,17 @@ const Properties = ({ definitions, setPostData, postData }) => {
 	};
 
 	// Component for rendering input properties
-	const Inputs = ({ pName, property }) => {
+	const Inputs = ({ pName, property, defaultValue }) => {
+		// declare state with the default value
+		const [defValue, setDefValue] = useState(defaultValue || '');
+
+		// update state when default value is not null
+		useEffect(() => {
+			if (defaultValue && 'value' in defaultValue) {
+				setDefValue(defaultValue.value);
+			}
+		}, [defaultValue]);
+
 		return (
 		<>
 		{(property.format === 'path' || property.format === 'directory-path') && (
@@ -246,6 +307,7 @@ const Properties = ({ definitions, setPostData, postData }) => {
 				pName={pName}
 				property={property}
 				postData={postData}
+				defaultValue={defValue}
 			/>
 		)}
 		{property.format === 'file-path' && (			
@@ -253,6 +315,7 @@ const Properties = ({ definitions, setPostData, postData }) => {
 				pName={pName}
 				property={property}
 				postData={postData}
+				defaultValue={defValue}
 			/>
 		)}
 		{property.format === 'string' && (
@@ -260,6 +323,7 @@ const Properties = ({ definitions, setPostData, postData }) => {
 				pName={pName}
 				property={property}
 				postData={postData}
+				defaultValue={defValue}
 			/>
 		)}
 		{property.format === 'boolean' && (
@@ -267,6 +331,7 @@ const Properties = ({ definitions, setPostData, postData }) => {
 				pName={pName}
 				property={property}
 				postData={postData}
+				defaultValue={defValue}
 			/>
 		)}
 		</>
@@ -281,7 +346,7 @@ const Properties = ({ definitions, setPostData, postData }) => {
 			<Panel header={header(definitions[i])}>
 			{ Object.keys(definitions[i].properties).map((j) => (
 				<div key={j} className="field mb-5">
-					<Inputs pName={j} property={definitions[i].properties[j]} />
+					<Inputs pName={j} property={definitions[i].properties[j]} defaultValue={globalServices.getAttemptInputByName(attempt, `--${j}`)} />
 				</div>
 			))}
 			</Panel>

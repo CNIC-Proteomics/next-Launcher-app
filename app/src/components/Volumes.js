@@ -18,7 +18,7 @@ import { volumeServices } from '../services/volumeServices';
  */
 const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 
-  // Define columns
+	// Define columns
 	const columns = [
 		{ field: 'name', header: 'Name', expander: true, filter: true, filterPlaceholder: 'Filter by name' },
 		{ field: 'description', header: 'Description' },
@@ -27,25 +27,25 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 	];
 
 
-  // Declare states
-  const [loading, setLoading] = useState(true);
-  const [volumes, setVolumes] = useState([]);
+	// Declare states
+	const [loading, setLoading] = useState(true);
+	const [volumes, setVolumes] = useState([]);
 	const [selectedKeys, setSelectedKeys] = useState({});
 	const [expandedModuleKeys, setExpandedModuleKeys] = useState({});
 	const [isSelected, setIsSelected] = useState(false);
 	const [scrollHeight, setScrollHeight] = useState('400px'); // default height
 	const [searchPath, setSearchPath] = useState('');
-  // ref to track if data has been fetched
-  const hasWkfData = useRef(false);
+	// ref to track if data has been fetched
+	const hasWkfData = useRef(false);
 	const treeTableRef = useRef(null); // reference for scrolling
 
 
 	// Get the volumes calling the service
 	// with useCallback: Memoize the fetchWorkflows function
-  const fetchVolumes = useCallback(async () => {
-    // transform raw dataset data to displayable format for the DataTable.
-    // adds action buttons for each dataset.
-    const transformData = (data) => {
+  	const fetchVolumes = useCallback(async () => {
+		// transform raw dataset data to displayable format for the DataTable.
+		// adds action buttons for each dataset.
+		const transformData = (data) => {
 			return data.map((volume) => ({
 				key: volume.volume, // use the volume path as a unique key
 				data: { id: volume.volume, name: volume.volume, type: "folder", size: "", expander: true, isRoot: true },
@@ -67,16 +67,16 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 		};
 
 		try {
-      const data = await volumeServices.get();
-      if ( data !== null ) {
-        setVolumes(transformData(data));
-        setLoading(false);
-      }
+			const data = await volumeServices.get();
+			if ( data !== null ) {
+				setVolumes(transformData(data));
+				setLoading(false);
+			}
 		} catch (error) {
-      console.error('Error fetching volumes:', error);
-      setLoading(false);
+			console.error('Error fetching volumes:', error);
+			setLoading(false);
 		}
-  }, []);
+  	}, []);
 
 
 	// Fetch folder contents dynamically
@@ -235,8 +235,10 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 	// It dynamically loads and expands the tree hierarchy to make all folders in the specified path visible in the UI.
 	const expandToPath = async (givenPath) => {
 		try {
+			// replace the S letter (tierra unit) for '/mnt/shared
+			// or the letter unit for '/mnt/shared/$1
 			// normalize path delimiters
-			givenPath = givenPath.replace(/\\/g, '/');
+			givenPath = givenPath.replace(/^S:/, '/mnt/shared').replace(/^([A-Z]):/, '/mnt/shared/$1').replace(/\\/g, '/');
 
 			// create a mutable copy
 			const newExpandedKeys = { ...expandedModuleKeys };
@@ -342,6 +344,46 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 		setSelectedKeys(e.value);
 		setIsSelected(Object.keys(e.value).length > 0);
 	};
+	// // Update the selected files based on the selection change
+	// // Automatically expand the selected node if it has children.
+	// const handleSelectionChange = async (e) => {
+	// 	const selectedNodes = e.value;		
+	// 	delete selectedNodes['undefined']; // remove the element with the key 'undefined'
+	// 	setSelectedKeys(selectedNodes);
+	// 	setIsSelected(Object.keys(selectedNodes).length > 0);
+
+	// 	// find the longest key
+	// 	const longestKey = Object.keys(selectedNodes).reduce((longest, key) => selectedNodes[key].checked && key.length > longest.length ? key : longest, '');
+
+	// 	// find the selected node
+	// 	const findNode = (nodes, key) => {
+	// 		for (let node of nodes) {
+	// 			if (node.key === key) return node;
+	// 			if (node.children) {
+	// 				const found = findNode(node.children, key);
+	// 				if (found) return found;
+	// 			}
+	// 		}
+	// 		return null;
+	// 	};	
+	// 	const selectedNode = findNode(volumes, longestKey);
+
+	// 	// simulate a click on the expand button
+	// 	if (selectedNode && selectedNode.children) {
+	// 		try {
+	// 			// expand node
+	// 			await handleExpand({ node: selectedNode });
+	// 			setExpandedModuleKeys(selectedNodes);
+
+	// 			// select the elements of expanded node
+	// 			// handleSelectionChange({value: selectedNode});
+
+	// 		} catch (error) {
+	// 			console.error('Error in handleSelectionChange:', error);
+	// 			showError('', 'An error occurred while navigating to the specified path.');
+	// 		}
+	// 	}
+	// };
 
 	
 	// Functions that freeze the elements opened in the file tree (viewer)
@@ -351,29 +393,29 @@ const Volumes = ({ hideDialog, dataset, updateDataset }) => {
 
 
 	// Create the header
-  const header = (
-    <div className="flex p-inputgroup" style={{ padding: '0.5rem', alignItems: 'center' }}>
-      <InputText
-        style={{ width: '100%' }}
-        placeholder="Go to the specific volume path..."
-        value={searchPath}
-        onChange={(e) => setSearchPath(e.target.value)}
-				onKeyDown={(e) => { if (e.key === 'Enter') { getSpecificPath(); }	}}
-      />
-      <Button label="Search" onClick={getSpecificPath} icon="pi pi-search" />
-    </div>
-  );  	
+	const header = (
+	<div className="flex p-inputgroup" style={{ padding: '0.5rem', alignItems: 'center' }}>
+		<InputText
+		style={{ width: '100%' }}
+		placeholder="Go to the specific volume path..."
+		value={searchPath}
+		onChange={(e) => setSearchPath(e.target.value)}
+		onKeyDown={(e) => { if (e.key === 'Enter') { getSpecificPath(); }	}}
+		/>
+		<Button label="Search" onClick={getSpecificPath} icon="pi pi-search" />
+	</div>
+	); 
 
 
 	
 	// Add rowClassName for conditional styling
-  const rowClassName = (node) => {
+	const rowClassName = (node) => {
 		if ( node ) {
 			return {
 				'highlight-row': node.data?.isRoot !== undefined, // apply highlight-row to the first folder
-			};	
+			};
 		}
-  };
+	};
 
 
 	// Allows you to perform side effects like data fetching after the component renders.	

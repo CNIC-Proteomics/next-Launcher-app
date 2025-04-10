@@ -89,7 +89,7 @@ export class outputServices {
       a.remove();
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.log('Fetch aborted:', error.message); // Log when fetch is aborted
+        console.debug('Fetch aborted:', error.message); // Log when fetch is aborted
       } else {
         console.error('Error downloading archive:', error);
         throw error;

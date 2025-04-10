@@ -25,10 +25,20 @@ import Dataset from './Dataset';
  * DescriptionParameter
  * Creates description pipeline.
  */
-export const DescriptionParameter = ({ title, postData }) => {
+export const DescriptionParameter = ({ title, postData, defaultValue }) => {
 
-	// Declare constants
-	const [value, setValue] = useState('');
+	// Declare state
+	const [value, setValue] = useState(defaultValue || ''); // ensure default empty string
+
+	// Update state when defaultValue changes
+	useEffect(() => {
+		if (defaultValue) {
+			const newValue = defaultValue || '';
+			setValue(newValue);
+			// postData is updated if a default value exists
+			postData['Description'] = { description: newValue };
+		}
+	}, [defaultValue]);
 
 	// Function to handle the change event
 	const onChange = (e) => {
@@ -42,7 +52,7 @@ export const DescriptionParameter = ({ title, postData }) => {
 
 	return (
 		<div className="field">
-			<label htmlFor="workflow-description">Describe briefly your <strong>{title}</strong> pipeline:</label>
+			<label htmlFor="workflow-description">Describe briefly the execution of your <strong>{title}</strong> pipeline:</label>
 			<InputText id="workflow-description" className="w-full" maxLength='138' value={value} onChange={onChange}/>
 		</div>
 	);
@@ -55,14 +65,29 @@ export const DescriptionParameter = ({ title, postData }) => {
  * DatasetExplorerDialog
  * Creates dialog with the Dataset Explorer.
  */
-export const DatasetExplorerDialog = ({ pName, property, postData }) => {
+export const DatasetExplorerDialog = ({ pName, property, postData, defaultValue }) => {
 	
 
 	// Declare states
 	const [dialogVisible, setDialogVisible] = useState(false);
 	const [view, setView] = useState('table'); // 'table' or 'report'
 	const [selectedDataset, setSelectedDataset] = useState(null);
-	const [datasetValue, setDatasetValue] = useState('');
+	const [datasetValue, setDatasetValue] = useState(defaultValue || ''); // ensure default empty string
+
+
+	// Update state and postData when defaultValue changes
+	useEffect(() => {
+		if ( defaultValue ) {
+			const newValue = defaultValue || '';
+			setDatasetValue(newValue);
+			// postData is updated if a default value exists
+			postData[property.title] = {
+				name: `--${pName}`,
+				type: property.format,
+				value: newValue,
+			};	
+		}
+	}, [defaultValue]);
 
 
 	// Open the dialog
@@ -128,7 +153,7 @@ export const DatasetExplorerDialog = ({ pName, property, postData }) => {
 				'name': `--${pName}`,
 				'type': property.format,
 				'value': newValue,
-			};	
+			};
 		}
 		// close the dialog
 		hideDialog();
@@ -168,7 +193,7 @@ export const DatasetExplorerDialog = ({ pName, property, postData }) => {
 					outlined 
 				/>
 			</div>
-			<small id={`${property.title}-help`}>{property.help_text}</small>
+			{/* <small id={`${property.title}-help`}>{property.help_text}</small> */}
 			{/* dialog with dynamic content */}
 			<Dialog 
 				header={`Select: ${property.title}`}
@@ -184,7 +209,7 @@ export const DatasetExplorerDialog = ({ pName, property, postData }) => {
 						<BreadCrumb model={breadcrumbItems} />
 						<Dataset id={selectedDataset._id} operation='view' selectDatasetFile={selectDatasetFile} /> {/* pass View Operation */}
 					</>
-				)}				
+				)}
 		</Dialog>
 		</div>
 	);
@@ -203,14 +228,6 @@ export const StringParameter = ({ pName, property, postData }) => {
 
 	// Initialize postData only once when the component mounts
 	useEffect(() => {
-		// setPostData((prevData) => ({
-		// 	...prevData,
-		// 	[property.title]: {
-		// 			name: `--${pName}`,
-		// 			type: property.format,
-		// 			value: value, // initialize with default value
-		// 	},
-		// }));
 		postData[property.title] = {
 			'name': `--${pName}`,
 			'type': property.format,
@@ -222,15 +239,6 @@ export const StringParameter = ({ pName, property, postData }) => {
 	const onChange = (e) => {
 		const newValue = e.target.value;
 		setValue(newValue);
-		// // update the postData with the new value
-		// setPostData((prevData) => ({
-		// 	...prevData,
-		// 	[property.title]: {
-		// 			name: `--${pName}`,
-		// 			type: property.format,
-		// 			value: newValue,
-		// 	},
-		// }));
 		postData[property.title] = {
 			'name': `--${pName}`,
 			'type': property.format,
@@ -250,7 +258,7 @@ export const StringParameter = ({ pName, property, postData }) => {
 					onChange={onChange}
 				/>
 			</div>
-			<small id={`${property.title}-help`}>{property.help_text}</small>
+			{/* <small id={`${property.title}-help`}>{property.help_text}</small> */}
 		</div>
 	);
 };
@@ -268,14 +276,6 @@ export const BooleanParameter = ({ pName, property, postData }) => {
 
 	// Initialize postData only once when the component mounts
 	useEffect(() => {
-		// setPostData((prevData) => ({
-		// 	...prevData,
-		// 	[property.title]: {
-		// 			name: `--${pName}`,
-		// 			type: property.format,
-		// 			value: String(value), // initialize with default value
-		// 	},
-		// }));
 		postData[property.title] = {
 			'name': `--${pName}`,
 			'type': property.format,
@@ -287,15 +287,6 @@ export const BooleanParameter = ({ pName, property, postData }) => {
 	const onChange = (e) => {
 		const newValue = e.target.value;
 		setValue(newValue);
-		// // update the postData with the new value
-		// setPostData((prevData) => ({
-		// 	...prevData,
-		// 	[property.title]: {
-		// 			name: `--${pName}`,
-		// 			type: property.format,
-		// 			value: String(newValue),
-		// 	},
-		// }));
 		postData[property.title] = {
 			'name': `--${pName}`,
 			'type': property.format,
@@ -314,7 +305,7 @@ export const BooleanParameter = ({ pName, property, postData }) => {
 					onChange={onChange}
 				/>
 			</div>
-			<small id={`${property.title}-help`}>{property.help_text}</small>
+			{/* <small id={`${property.title}-help`}>{property.help_text}</small> */}
 		</div>
 	);
 };

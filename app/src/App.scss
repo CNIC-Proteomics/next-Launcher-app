@@ -259,6 +259,37 @@
 .table-datasets .p-button .p-button-icon-left {
   margin-right: 1px;
 }
+.p-tieredmenu {
+  width: 150px;
+  font-size: var(--nl-btn-font-size);
+}
+/*
+.p-tieredmenu {
+  width: 150px;
+  font-size: var(--nl-btn-font-size);
+  background-color: var(--nl-btn-bg-color);
+  border-color: var(--nl-btn-hover-border-color);
+}
+.p-tieredmenu .p-menuitem-link {
+  color: var(--nl-btn-color);
+}
+.p-tieredmenu .p-menuitem:first-child > .p-menuitem-link {
+  background-color: var(--nl-btn-bg-color) !important;
+  color: var(--nl-btn-color) !important;
+}
+.p-tieredmenu .p-menuitem-link:hover {
+  background-color: var(--nl-btn-hover-bg-color);
+  color: var(--nl-btn-hover-color);
+}
+.p-tieredmenu .p-menuitem-link:active {
+  background-color: var(--nl-btn-active-bg);
+  color: var(--nl-btn-active-color);
+}
+.p-tieredmenu .p-menuitem:hover > .p-menuitem-link {
+  background-color: var(--nl-btn-hover-bg-color) !important;
+  color: var(--nl-btn-hover-color) !important;
+}
+*/
 
 // paginator
 .table-workflows .p-paginator *,

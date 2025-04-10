@@ -133,6 +133,27 @@ export class workflowServices {
 
   
   /**
+   * "cancel" stops an existing workflow identified by the provided ID.
+   * @param {String} id - The workflow identifier.
+   * @returns {Object|null} - The edited workflow object if successful, otherwise throws an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  static async cancel(id) {
+    try {
+      const response = await this.fetchWithAuth(`${BACKEND_URL}/api/workflows/${id}/cancel`, {
+        method: 'POST'
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+
+  /**
    * "delete" a workflow instance based on the provided id.
    * @param {String} id - The workflow identifier.
    * @returns {Object|null} - The created workflow object if successful, otherwise throws an error.

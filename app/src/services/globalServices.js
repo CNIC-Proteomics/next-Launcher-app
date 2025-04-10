@@ -33,6 +33,20 @@ export const getAttemptById = (workflow, id) => {
 
 
 /**
+ * Function to get an attempt input by Name from a given attempt.
+ * @param {Object} attempt - The object that defines an attempt.
+ * @param {String} name - The Name of the input to find.
+ * @returns {Object|null} - The input object if found, otherwise null.
+ */
+export const getAttemptInputByName = (attempt, name) => {
+	if ( 'inputs' in attempt && isNotEmptyObject(attempt.inputs) ) {
+		return attempt.inputs.find(input => String(input.name) === String(name)) || null;
+	}
+	else { return null }
+};
+
+
+/**
  * Utility function to get file name from a path or URL
  * @param {String} path - Path from a file
  * @returns {String} - The base name of file.

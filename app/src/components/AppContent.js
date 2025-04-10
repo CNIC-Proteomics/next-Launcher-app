@@ -65,12 +65,13 @@ const AppContent = () => {
           <RoleBasedRoute path="/datasets" component={Datasets} allowedRoles={ALLOWED_ROLES} />
           {/* URLs:
             pipelines
-            pipelines/0/0/create
+            pipelines/:name/create
+            pipelines/:name/update/:id/:attempt
           */}
           <RoleBasedRoute path="/pipelines/:pipelineName/create" component={Pipeline} allowedRoles={ALLOWED_ROLES} />
+          <RoleBasedRoute path="/pipelines/:pipelineName/update/:workflowId/:attemptId" component={Pipeline} allowedRoles={ALLOWED_ROLES} />
           <Route path="/pipelines" component={Pipelines} />
           {/* URLs:
-            workflows/:id/:attempt/update{launch}
             workflows/:id/:attempt/view
           */}
           <RoleBasedRoute path="/workflows/:workflowId/:attemptId/view" component={Workflow} allowedRoles={ALLOWED_ROLES} />

@@ -22,3 +22,23 @@ export const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10Gb
 export const GUEST_USER = 'guest';
 export const GUEST_PWD = 'guest';
 export const ALLOWED_ROLES = ['guest','cnic','admin'];
+
+/* Workflow severity level */
+export const STATUS_SEVERITY = {
+    running: 'info',
+    completed: 'success',
+    canceled: 'warn',
+    failed: 'error',
+};
+
+/* List of Pipelines */
+// Import all JSON files from the "pipelines" folder
+// Function to import JSON files dynamically
+const importAll = (r) => {
+    let pipelines = [];
+    r.keys().forEach(key => {
+        pipelines.push(r(key));
+    });
+    return pipelines;
+};  
+export const PIPELINES_LIST = importAll(require.context('../public/pipelines', false, /\.json$/));

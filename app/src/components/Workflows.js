@@ -15,8 +15,9 @@ import { Message } from 'primereact/message';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
-import { CHECK_WORKFLOWS } from '../constants';
+import { CHECK_WORKFLOWS, STATUS_SEVERITY } from '../constants';
 import { showInfo, showError, showWarning } from '../services/toastServices';
 import { userServices } from '../services/userServices';
 import { workflowServices } from '../services/workflowServices';
@@ -35,17 +36,15 @@ const Workflows = () => {
   // Declare context
 	const { auth } = useContext(userServices);
 
-  // Define history
-  // const history = useHistory();
-
 
   // Define header
   const columns = [
+    { field: 'author', header: 'Author' },
+    { field: '_id', header: 'Id' },
     { field: 'name', header: 'Name' },
     { field: 'description', header: 'Description' },
-    { field: 'author', header: 'Author' },
-    { field: 'date_submitted', header: 'Date submitted' },
     { field: 'attempt', header: 'Attempt' },
+    { field: 'date_submitted', header: 'Date submitted' },
     { field: 'status', header: 'Status' },
     { field: 'action', header: 'Action' }
   ];
@@ -113,15 +112,15 @@ const Workflows = () => {
 	// 	}
 	// };
 	// Get the workflows
-	// with useCallback: Memoize the fetchWorkflows function
+	// with useCallback: Memorize the fetchWorkflows function
   const fetchWorkflows = useCallback(async () => {
-		// transform the data for the table
+		// transform and sort the data for the table
 		const transformData = (data) => {
 			let result = [];
 			data.forEach(item => {
-				const { _id, name, description, author, attempts } = item;
+				const { _id, name, author, attempts } = item;
 				attempts.forEach(attempt => {
-					const { date_submitted, id, status } = attempt;
+					const { id, description, date_submitted, status } = attempt;
 					result.push({
 						_id,
 						name,
@@ -134,6 +133,7 @@ const Workflows = () => {
 					});
 				});
 			});
+      result = result.sort((a, b) => new Date(b.date_submitted) - new Date(a.date_submitted));
 			return result;
 		};
     try {
@@ -147,7 +147,6 @@ const Workflows = () => {
       setLoading(false);
     }
   }, []);
-
 
 	// Allows you to perform side effects like data fetching after the component renders.	
   useEffect(() => {
@@ -228,13 +227,14 @@ const Workflows = () => {
         </div>
       ) : (
         <>
+        <ConfirmDialog />
         <DataTable
           size='small'
           value={workflows}
           header={renderHeader}
           filters={filters}
           globalFilterFields={columns.map(c => c.field)}
-          paginator rows={20} rowsPerPageOptions={[5, 10, 20]}
+          paginator rows={20} rowsPerPageOptions={[5, 10, 20, 50, 100]}
           selectionMode={'checkbox'} selection={selectedWorkflows} onSelectionChange={(e) => setSelectedWorkflows(e.value)}>
           <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
           {columns.map((col, i) => (
@@ -263,16 +263,67 @@ const Workflows = () => {
  * @returns 
  */
 const StatusMessage = ({ status }) => {
-  const severity = {
-    'running': 'info',
-    'completed': 'success',
-    'failed': 'error',
-  }[status];
-
-  return ( <Message severity={severity} text={status} /> );
+  return ( <Message severity={STATUS_SEVERITY[status]} text={status} /> );
 };
 
 
+
+/**
+ * Cancel workflow functions
+ * Functions to cancel selected workflow with confirmation dialog.
+ */
+const confirmCancel = (data) => {
+  confirmDialog({
+    message: `Are you sure you want to cancel "${data.name}" workflow?`,
+    header: 'Confirm Cancellation',
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => handleCancelWorkflow(data)
+  });
+};
+const handleCancelWorkflow = async (data) => {
+  try {
+    await workflowServices.cancel(data._id);
+    showInfo('', `Workflow '${data.name}' has been canceled.`);
+  } catch (error) {
+    showError('', 'An error occurred while canceling the workflow.');
+  }
+};
+
+
+/**
+ * Re-Launch workflow functions
+ * Functions to re-launch selected workflow with confirmation dialog.
+ */
+const confirmReLaunch = (data, attempt, history) => {
+  let hasClose = false;
+  let sms = `Are you sure you want to relaunch the "${data.name}" workflow?`
+  if ( data.status === 'running' ) {
+    hasClose = true;
+    sms = (<>
+      Are you sure you want to relaunch the "{data.name}" workflow?
+      <br />
+      First, the workflow <strong>will be canceled before relaunching</strong>.
+    </>);
+  }
+  confirmDialog({
+    message: sms,
+    header: 'Confirm Re-Launch',
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => handleReLaunchWorkflow(hasClose, data, attempt, history),
+  });
+};
+const handleReLaunchWorkflow = async (hasClose, data, attempt, history) => {
+  try {
+    if ( hasClose ) {
+      await handleCancelWorkflow(data); // wait for cancellation to complete
+    }
+    history.push({
+      pathname: `/pipelines/${data.name}/update/${data._id}/${attempt}`
+    });
+  } catch (error) {
+    showError('', 'An error occurred while relaunching the workflow.');
+  }
+};
 
 
 /**
@@ -296,21 +347,25 @@ const ActionButton = ({ data, attempt }) => {
     }
   }, [navigate, history, data, attempt]);
 
-  // const items = [
-  //   {
-  //       label: 'Option 1',
-  //       icon: 'pi pi-ellipsis-v',
-  //       command: () => {
-  //           console.log('Option 1 clicked');
-  //       }
-  //   }
-  // ];
-  const items = [];
-  const onClick = () => {
-      setNavigate(true);
-
+  // Create splitButton menu
+  const items = [
+    {
+        label: 'Stop',
+        icon: 'pi pi-stop-circle',
+        command: () => confirmCancel(data)
+    },{
+      label: 'Re-Launch',
+      icon: 'pi pi-replay',
+      command: () => confirmReLaunch(data, attempt, history)
+    }
+];
+  const onView = () => {
+    setNavigate(true);
   };
-  return ( <SplitButton label="Open" icon="pi pi-caret-right" dropdownIcon="pi pi-ellipsis-v" onClick={onClick} model={items} /> );
+  return (
+  <>
+    <SplitButton label="View" icon="pi pi-eye" dropdownIcon="pi pi-ellipsis-v" onClick={onView} model={items} />
+  </>);
 };
 
 
@@ -342,7 +397,7 @@ const RemoveRecordButton = ({loading, setLoading, selectedWorkflows, onRemoveCom
 			onClick={handleRemove}
 			disabled={loading || !selectedWorkflows || selectedWorkflows.length === 0}
 		/>
-		<ConfirmDialog
+		<ConfirmRemove
 			displayDialog={displayDialog}			
 			setDisplayDialog={setDisplayDialog}
 			setLoading={setLoading}
@@ -357,17 +412,16 @@ const RemoveRecordButton = ({loading, setLoading, selectedWorkflows, onRemoveCom
 
 
 /**
- * ConfirmDialog Component
+ * ConfirmRemove Component
  * Displays confirmation dialog for workflow deletion.
  */
-const ConfirmDialog = ({ displayDialog, setDisplayDialog, setLoading, selectedWorkflows, onRemoveComplete }) => {
+const ConfirmRemove = ({ displayDialog, setDisplayDialog, setLoading, selectedWorkflows, onRemoveComplete }) => {
   // open dialog
   const handleConfirm = async () => {
 		setDisplayDialog(false); // Hide the dialog
 		setLoading(true);
 		try {
 			// loop over the selected workflows and delete each one
-			console.log( selectedWorkflows );
 			for (let ds of selectedWorkflows) {
 				await workflowServices.delete(ds._id);
 				showInfo('',`The workflow '${ds.name}' was deleted correctly`)

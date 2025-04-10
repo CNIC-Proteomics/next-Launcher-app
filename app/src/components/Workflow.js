@@ -2,18 +2,9 @@
  * Import libraries
  */
 
-import React, {
-  useState,
-  useEffect,
-	useRef
-} from 'react';
-import {
-  useParams,
-} from 'react-router-dom';
-import {
-  TabView,
-  TabPanel
-} from 'primereact/tabview';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+import { TabView, TabPanel } from 'primereact/tabview';
 import { Card } from 'primereact/card';
 import { TreeTable } from 'primereact/treetable';
 import { Column } from 'primereact/column';
@@ -23,15 +14,10 @@ import { Message } from 'primereact/message';
 import AnsiToHtml from 'ansi-to-html';
 import classNames from 'classnames';
 
-import {
-	CHECK_WORKFLOWS
-} from '../constants';
-import {
-  showError,
-} from '../services/toastServices';
+import { CHECK_WORKFLOWS, STATUS_SEVERITY } from '../constants';
+import { showError } from '../services/toastServices';
 import { workflowServices } from '../services/workflowServices';
 import { outputServices } from '../services/outputServices';
-// import * as globalServices from '../services/globalServices';
 
 
   
@@ -45,17 +31,17 @@ const Workflow = () => {
 	
 	// create constants
 	const [loading, setLoading] = useState(true);
-  const [workflow, setWorkflow] = useState({});
-	// const [attempt, setAttempt] = useState({});
-  const [execLogText, setExecLogText] = useState('');
-  const [attemptStatus, setAttemptStatus] = useState('');
+	const [workflow, setWorkflow] = useState({});
+	const [execLogText, setExecLogText] = useState('');
+	const [attemptDescription, setAttemptDescription] = useState('');
+	const [attemptStatus, setAttemptStatus] = useState('');
 	// create references to track if data has been fetched
 	const hasWorkflowData = useRef(false);
 	const hasLogData = useRef(false);
 	const logIntervalRef = useRef(null);
 	
-  // get the workflow data
-  useEffect(() => {
+	// get the workflow data
+	useEffect(() => {
 
 		// make the GET request to get the log
 		const getWorkflowData = async (workflowId) => {
@@ -64,8 +50,6 @@ const Workflow = () => {
 				if (result) {
 					setWorkflow(result);
 					setLoading(false);
-					// set the info of attempt execution
-					// setAttempt(globalServices.getAttemptById(result, attemptId));
 				}
 				else {
 					showError('', 'The workflow info was not obtained correctly');
@@ -82,6 +66,7 @@ const Workflow = () => {
 				const result = await workflowServices.log(workflowId, attemptId);
 				if (result && result.log) {
 					setExecLogText(result.log);
+					setAttemptDescription(result.description);
 					setLoading(false);
 
 					// check the status of attempt execution
@@ -89,7 +74,7 @@ const Workflow = () => {
 					setAttemptStatus(newStatus);
 
 					// stop the loop if status is 'completed' or 'failed'
-					if (newStatus === 'completed' || newStatus === 'failed') {
+					if (newStatus === 'completed' || newStatus === 'failed' || newStatus === 'canceled') {
 						if (logIntervalRef.current) {
 							clearInterval(logIntervalRef.current);
 							logIntervalRef.current = null;
@@ -97,8 +82,7 @@ const Workflow = () => {
 					}
 				}
 				else {
-					// showError('', 'The log info was not obtained correctly');
-					console.error('The log info was not obtained correctly.');
+					// console.error('The log info was not obtained correctly:', result);
 				}
 			} catch (error) {
 				console.error('Error getting log:', error);
@@ -142,7 +126,7 @@ const Workflow = () => {
 			</div>
 		) : (
 		<>
-			<WorkflowCard workflow={workflow} status={attemptStatus} />
+			<WorkflowCard workflow={workflow} description={attemptDescription} status={attemptStatus} />
 			<WorkflowPanels workflowId={workflowId} attemptId={attemptId} attemptStatus={attemptStatus} execLogText={execLogText} />
 		</>
 		)}
@@ -156,19 +140,13 @@ const Workflow = () => {
 /**
  * Component that creates the workflow card with the name, description,...
  */
-const WorkflowCard = ({workflow, status}) => {
-  const severity = {
-    running: 'info',
-    completed: 'success',
-    failed: 'error',
-  }[status];
-
+const WorkflowCard = ({workflow, description, status}) => {
   return (
     <div className="card-workflow">
       <Card title={workflow.name}>
-        <small className="m-0">{workflow.description}</small>
+        <small className="m-0">{description}</small>
         <div className="status">
-          <Message severity={severity} text={status} />
+		  <Message severity={STATUS_SEVERITY[status]} text={status} />
         </div>
       </Card>
     </div>
@@ -183,15 +161,15 @@ const WorkflowCard = ({workflow, status}) => {
  */
 const WorkflowPanels = ({workflowId, attemptId, attemptStatus, execLogText}) => {
 	// create constants
-  const [moduleFiles, setModuleFiles] = useState({});
+	const [moduleFiles, setModuleFiles] = useState({});
 	const [logFiles, setLogFiles] = useState({});
-  const [expandedModuleKeys, setExpandedModuleKeys] = useState({});
-  const [expandedLogKeys, setExpandedLogKeys] = useState({});
+	const [expandedModuleKeys, setExpandedModuleKeys] = useState({});
+	const [expandedLogKeys, setExpandedLogKeys] = useState({});
 	// ref to track if data has been fetched
 	const hasOutputData = useRef(false);
 
-  // get the request data
-  useEffect(() => {
+	// get the request data
+	useEffect(() => {
 		if (workflowId && attemptId) {
 			// get the outputs of attempt execution
 			if (!hasOutputData.current) {
@@ -252,12 +230,12 @@ const WorkflowPanels = ({workflowId, attemptId, attemptStatus, execLogText}) => 
 	};
 
 	// Functions that freeze the elements opened in the file tree (viewer)
-  const handleModuleExpand = (e) => {
-    setExpandedModuleKeys(e.value);
-  };
-  const handleLogExpand = (e) => {
-    setExpandedLogKeys(e.value);
-  };
+	const handleModuleExpand = (e) => {
+		setExpandedModuleKeys(e.value);
+	};
+	const handleLogExpand = (e) => {
+		setExpandedLogKeys(e.value);
+	};
 
 	// Render
 	return (
@@ -356,7 +334,7 @@ const ArchiveButton = ({ workflowId, attemptId, downloadArchive }) => {
  */
 const Terminal = ({ execLogText }) => {
 	// set default message if execLogText is empty
-	if (execLogText === '') { execLogText = 'Sorry. The log info is empty' }
+	if (execLogText === '') { execLogText = 'Waiting...' }
 	const convert = new AnsiToHtml();
 	const html = convert.toHtml(execLogText);
 	const terminalRef = useRef(null);

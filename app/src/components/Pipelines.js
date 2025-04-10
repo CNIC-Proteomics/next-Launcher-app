@@ -13,28 +13,9 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 
-// import { logger } from '../logger';
-// import { showError } from '../services/toastServices';
-// import { workflowServices } from '../services/workflowServices';
-// import { datasetServices } from '../services/datasetServices';
+import { PIPELINES_LIST } from '../constants';
 import { userServices } from '../services/userServices';
 
-/*
- * Constants
- */
-
-
-// Function to import JSON files dynamically
-const importAll = (r) => {
-  let pipelines = [];
-  r.keys().forEach(key => {
-    pipelines.push(r(key));
-  });
-  return pipelines;
-}
-
-// Import all JSON files from the "pipelines" folder
-const pipelineFiles = importAll(require.context('../../public/pipelines', false, /\.json$/));
 
 
 /*
@@ -68,7 +49,7 @@ const Pipelines = () => {
       action: <LunchButton data={data} auth={auth} />
     });
 
-    const data = pipelineFiles.map(convertDataToTable);
+    const data = PIPELINES_LIST.map(convertDataToTable);
     setDatatable(data);
     setLoading(false);
   }, [auth]);
@@ -118,7 +99,7 @@ const LunchButton = ({ data }) => {
     if (navigate) {
       history.push({
         pathname: `/pipelines/${data.title}/create`,
-        state: { schema: data }
+        // state: { schema: data }
       });
     }
   }, [navigate, history, data]);
