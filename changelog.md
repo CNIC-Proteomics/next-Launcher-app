@@ -1,4 +1,16 @@
 ___
+## 0.1.5
+
+### Date 📅 *2025_04*
+
+### Changes in detail
+
++ Added 'ALLOWED_ROLES' constant.
++ Displayed the revision value in the Pipeline table.
++ Updated pipeline schemas and revisions.
+
+
+___
 ## 0.1.4
 ```
 DATE: 2024_12
