@@ -126,7 +126,7 @@ const Pipeline = () => {
 	}, [requiredFields, postData, setDisabledLaunch]);
 
 
-	// Lauch Pipeline
+	// Launch Pipeline
 	const launchWorkflow = async () => {
 		// Check if it is a re-launch
 		let resume = false
@@ -263,7 +263,7 @@ const SideMenu = ({ definitions, launchWorkflow, disabledLaunch }) => {
 		<div className='parameters-sidemenu'>
 		<div className='flex flex-column gap-4'>
 			<PanelMenu model={menuItems} expandedKeys={expandedKeys} multiple />
-			<Button label='Lauch' disabled={disabledLaunch} onClick={launchWorkflow} />
+			<Button label='Launch' disabled={disabledLaunch} onClick={launchWorkflow} />
 		</div>
 		</div>
 	);

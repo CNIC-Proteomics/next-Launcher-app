@@ -104,8 +104,8 @@ const LunchButton = ({ data }) => {
     }
   }, [navigate, history, data]);
 
-  // Lauch Pipeline (if user is authenticathed)
-  const lauchPipeline = () => {
+  // Launch Pipeline (if user is authenticathed)
+  const launchPipeline = () => {
     setNavigate(true); // set state to trigger navigation
   };
 
@@ -113,7 +113,7 @@ const LunchButton = ({ data }) => {
   return (
     <Button
       label='Launch'
-      onClick={() => lauchPipeline()}
+      onClick={() => launchPipeline()}
       raised
     />
   );
