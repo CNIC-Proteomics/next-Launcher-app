@@ -7,9 +7,9 @@ export const APP_NAME = process.env.REACT_APP_NAME;
 export const APP_VERSION = process.env.REACT_APP_VERSION;
 
 /* Server constants */
-export const BACKEND_HOST_IP = process.env.REACT_APP_HOST_IP || 'localhost';
+export const BACKEND_HOST_NAME = process.env.REACT_APP_HOST_NAME || 'localhost';
 export const BACKEND_PORT = process.env.REACT_APP_PORT_CORE || 8080;
-export const BACKEND_URL = `http://${BACKEND_HOST_IP}:${BACKEND_PORT}`;
+export const BACKEND_URL = `http://${BACKEND_HOST_NAME}:${BACKEND_PORT}`;
 
 /* Intervals file constants */
 export const CHECK_AUTH = 60000; // check every 60 seconds
