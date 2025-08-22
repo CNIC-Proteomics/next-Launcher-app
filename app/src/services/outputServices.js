@@ -79,7 +79,7 @@ export class outputServices {
       const response = await this.fetchWithAuth(`${BACKEND_URL}/api/outputs/archive/${id}/${attempt}/download`, abortController);
 
       const blob = await response.blob();
-      const filename = `outputs-${id}-${attempt}.tar.gz`;
+      const filename = `outputs-${id}-${attempt}.zip`;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -137,7 +137,7 @@ export class outputServices {
   //     }
   
   //     const blob = await response.blob();
-  //     const filename = `outputs-${id}-${attempt}.tar.gz`;
+  //     const filename = `outputs-${id}-${attempt}.zip`;
   //     const url = window.URL.createObjectURL(blob);
   //     const a = document.createElement('a');
   //     a.href = url;
@@ -166,7 +166,7 @@ export class outputServices {
   //       const url = window.URL.createObjectURL(new Blob([blob]));
   //       const link = document.createElement('a');
   //       link.href = url;
-  //       link.setAttribute('download', `outputs-${id}-${attempt}.tar.gz`);
+  //       link.setAttribute('download', `outputs-${id}-${attempt}.zip`);
   //       document.body.appendChild(link);
   //       link.click();
   //       link.parentNode.removeChild(link);
@@ -194,7 +194,7 @@ export class outputServices {
   
   //     // Example handling of the blob response
   //     const blob = new Blob([response.data], { type: response.headers['content-type'] });
-  //     const filename = `outputs-${id}-${attempt}.tar.gz`;
+  //     const filename = `outputs-${id}-${attempt}.zip`;
   
   //     // Create a URL for the blob data and create a link element to trigger download
   //     const url = window.URL.createObjectURL(blob);
@@ -235,7 +235,7 @@ export class outputServices {
   
     //   // Get the filename from Content-Disposition header if available
     //   const contentDisposition = response.headers.get('Content-Disposition');
-    //   let filename = `outputs-${id}-${attempt}.tar.gz`; // Default filename
+    //   let filename = `outputs-${id}-${attempt}.zip`; // Default filename
   
     //   if (contentDisposition) {
     //     const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
