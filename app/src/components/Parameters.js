@@ -38,7 +38,7 @@ export const DescriptionParameter = ({ title, postData, defaultValue }) => {
 			// postData is updated if a default value exists
 			postData['Description'] = { description: newValue };
 		}
-	}, [defaultValue]);
+	}, [defaultValue, postData]);
 
 	// Function to handle the change event
 	const onChange = (e) => {
@@ -87,7 +87,8 @@ export const DatasetExplorerDialog = ({ pName, property, postData, defaultValue 
 				value: newValue,
 			};	
 		}
-	}, [defaultValue]);
+	}, [defaultValue, pName, postData, property.format, property.title]);
+
 
 
 	// Open the dialog

@@ -61,7 +61,7 @@ const Register = () => {
         // if everything was right, then login and redirect to "user" page
         try {
           await login(username, password);
-          history.push('/user');
+          history.push(`/users/${username}/view`);
         } catch (err) {
           showError('', `Error during login: ${err}`);
           console.error('Error during login: ', err);

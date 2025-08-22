@@ -2,8 +2,10 @@
  * Import libraries
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useContext, useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+
+import { userServices } from '../services/userServices';
 
 
 /*
@@ -11,6 +13,9 @@ import { Link, useLocation } from 'react-router-dom';
  */
 
 const NavigationTabs = () => {
+  // Declare context
+	const { auth } = useContext(userServices);
+
   // Declare states
   const location = useLocation();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -37,7 +42,13 @@ const NavigationTabs = () => {
       icon: 'pi pi-list',
       to: '/workflows',
     },
-  ], []);
+    // include only for admin
+    ...(auth?.role === 'admin' ? [{
+      label: 'Users',
+      icon: 'pi pi-users',
+      to: '/users',
+    }] : []),
+  ], [auth]);
 
   useEffect(() => {
     // Match the active tab based on the current path prefix. Ensure 'Main' is only selected for the exact '/'

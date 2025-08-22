@@ -17,6 +17,7 @@ import MainPage from './MainPage';
 import Login from './Login';
 import Register from './Register';
 import User from './User';
+import Users from './Users';
 import Datasets from './Datasets';
 import Dataset from './Dataset';
 import Pipelines from './Pipelines';
@@ -52,14 +53,20 @@ const AppContent = () => {
           <NavigationTabs />
         </div>
         <Switch>
+          {/* URLs:
+            register
+            users
+            users/:id/view
+            users/:id/update
+          */}
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
-          <RoleBasedRoute path="/user" component={User} allowedRoles={ALLOWED_ROLES} />
+          <RoleBasedRoute path="/users/:id/:operation" component={User} allowedRoles={ALLOWED_ROLES} /> {/* viewer and updater */}
+          <RoleBasedRoute path="/users" component={Users} allowedRoles={ALLOWED_ROLES} />
           {/* URLs:
             datasets
             datsets/0/create
             datasets/:id/update
-            datasets/:id/view ??
           */}
           <RoleBasedRoute path="/datasets/:id/:operation" component={Dataset} allowedRoles={ALLOWED_ROLES} /> {/* creator and updater */}
           <RoleBasedRoute path="/datasets" component={Datasets} allowedRoles={ALLOWED_ROLES} />

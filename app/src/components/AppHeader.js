@@ -54,7 +54,7 @@ const AppHeader = () => {
       items: [{
         label: 'Profile',
         icon: 'pi pi-fw pi-user',
-        command: () => history.push('/user')
+        command: () => history.push(`/users/${auth.username}/view`)
       },{
         label: 'Logout',
         icon: 'pi pi-fw pi-sign-out',

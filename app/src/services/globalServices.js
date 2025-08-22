@@ -85,3 +85,25 @@ export const formatFileSize = (sizeInBytes) => {
     // Return the formatted file size with two decimal precision and the unit
     return `${sizeInBytes.toFixed(2)} ${units[index]}`;
 };
+
+
+/**
+ * Utility function to convert a timestamp into a human-readable date and time.
+ * @param {Number|String} timestamp - The timestamp to be converted (in milliseconds or a valid date string).
+ * @returns {String} - Formatted date and time in the format "dd/mm/yyyy hh:mm:ss".
+ */
+export const convertTimestampToDate = (timestamp) => {
+  if (!timestamp) return '';
+  // convert the timestamp to a Date object
+  const date = new Date(timestamp);
+  // get the day, month, and year from the Date object
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  // format the date as dd/mm/yyyy hh:mm:ss
+  const formattedDateTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;  
+  return formattedDateTime;
+};

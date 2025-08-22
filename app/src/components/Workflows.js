@@ -17,8 +17,9 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
-import { CHECK_WORKFLOWS, STATUS_SEVERITY } from '../constants';
+import { CHECK_WORKFLOWS, STATUS_SEVERITY, BACKEND_HOST_NAME } from '../constants';
 import { showInfo, showError, showWarning } from '../services/toastServices';
+import * as globalServices from '../services/globalServices';
 import { userServices } from '../services/userServices';
 import { workflowServices } from '../services/workflowServices';
 
@@ -33,13 +34,21 @@ import { workflowServices } from '../services/workflowServices';
  */
 const Workflows = () => {
   
-  // Declare context
+  // Declare auth context
 	const { auth } = useContext(userServices);
 
+  // State management
+  const [selectedWorkflows, setSelectedWorkflows] = useState(null); // selected states (must be declared before any conditional return)
+  const [workflows, setWorkflows] = useState([]);
+  const [loading, setLoading] = useState(true);
+	// ref to track if data has been fetched
+  const hasWkfData = useRef(false);
+	const wkfIntervalRef = useRef(null);
 
   // Define header
   const columns = [
-    { field: 'author', header: 'Author' },
+    ...(auth.role === 'admin'? [{ field: 'host_name', header: 'Host' }] : []), // include only for admin
+    ...(auth.role === 'admin'? [{ field: 'author', header: 'Author' }] : []), // include only for admin
     { field: '_id', header: 'Id' },
     { field: 'name', header: 'Name' },
     { field: 'description', header: 'Description' },
@@ -50,67 +59,6 @@ const Workflows = () => {
   ];
 
 
-  // Transform timestamp to date
-  const timestampToDate = (timestamp) => {
-    // convert the timestamp to a Date object
-    const date = new Date(timestamp);
-    // get the day, month, and year from the Date object
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    // format the date as dd/mm/yyyy hh:mm:ss
-    const formattedDateTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;  
-    return formattedDateTime;
-  };
-
-
-  // GET request with the workflows information
-  const [workflows, setWorkflows] = useState([]);
-  const [loading, setLoading] = useState(true);
-	// ref to track if data has been fetched
-  const hasWkfData = useRef(false);
-	const wkfIntervalRef = useRef(null);
-
-
-	// // Transform the data for the table
-	// const transformData = (data) => {
-	// 	let result = [];
-	// 	data.forEach(item => {
-	// 		const { _id, name, description, author, attempts } = item;
-	// 		attempts.forEach(attempt => {
-	// 			const { date_submitted, id, status } = attempt;
-	// 			result.push({
-	// 				_id,
-	// 				name,
-	// 				description,
-	// 				author,
-	// 				'date_submitted': timestampToDate(date_submitted),
-	// 				'attempt': id,
-	// 				status,
-	// 				'action': <ActionButton data={item} attempt={id} />
-	// 			});
-	// 		});
-	// 	});
-	// 	return result;
-	// };
-
-
-	// // Get the workflows
-	// const fetchWorkflows = async () => {
-	// 	try {
-	// 			const data = await workflowServices.get();
-	// 			if (data !== null) {
-	// 				setWorkflows(transformData(data));
-	// 				setLoading(false);
-	// 			}
-	// 	} catch (error) {
-	// 			console.error('Error fetching workflows:', error);
-	// 			setLoading(false);
-	// 	}
-	// };
 	// Get the workflows
 	// with useCallback: Memorize the fetchWorkflows function
   const fetchWorkflows = useCallback(async () => {
@@ -118,15 +66,20 @@ const Workflows = () => {
 		const transformData = (data) => {
 			let result = [];
 			data.forEach(item => {
-				const { _id, name, author, attempts } = item;
+				const { host_name, _id, name, author, attempts } = item;
+        // filter by BACKEND_HOST_NAME for non-admin users
+        if (auth?.role !== 'admin' && host_name !== BACKEND_HOST_NAME) {
+          return; // skip this workflow
+        }
 				attempts.forEach(attempt => {
 					const { id, description, date_submitted, status } = attempt;
 					result.push({
+            host_name,
 						_id,
 						name,
 						description,
 						author,
-						'date_submitted': timestampToDate(date_submitted),
+						'date_submitted': globalServices.convertTimestampToDate(date_submitted),
 						'attempt': id,
 						status,
 						'action': <ActionButton data={item} attempt={id} />
@@ -144,9 +97,11 @@ const Workflows = () => {
 				}
     } catch (error) {
       console.error('Error fetching workflows:', error);
+      showError('', 'Error fetching workflows');
+    } finally {
       setLoading(false);
     }
-  }, []);
+  }, [auth]);
 
 	// Allows you to perform side effects like data fetching after the component renders.	
   useEffect(() => {
@@ -197,13 +152,13 @@ const Workflows = () => {
     return (
       <div className="flex justify-content-between align-items-center">
         <div className="table-datasets-action">
-					{ auth.role === 'admin'? (
-						<RemoveRecordButton
-							loading={loading}
-							setLoading={setLoading}
-							selectedWorkflows={selectedWorkflows}
-							onRemoveComplete={handleRemoveComplete}
-						/>
+          { auth.role === 'admin'? (
+            <RemoveRecordButton
+              loading={loading}
+              setLoading={setLoading}
+              selectedWorkflows={selectedWorkflows}
+              onRemoveComplete={handleRemoveComplete}
+            />
           ) : <></> }
         </div>
 				<div className="table-workflows-search">
@@ -215,9 +170,6 @@ const Workflows = () => {
 			</div>
     );
   };
-
-  // Selected workflows
-  const [selectedWorkflows, setSelectedWorkflows] = useState(null);
 
   return (
     <div className='table-workflows'>
@@ -358,7 +310,7 @@ const ActionButton = ({ data, attempt }) => {
       icon: 'pi pi-replay',
       command: () => confirmReLaunch(data, attempt, history)
     }
-];
+  ];
   const onView = () => {
     setNavigate(true);
   };

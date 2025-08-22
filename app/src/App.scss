@@ -194,6 +194,7 @@
 .table-pipelines,
 .table-workflows,
 .table-datasets,
+.table-users,
 .table-volumes {
   margin: 20px 20px;
   min-width: 900px;
@@ -202,15 +203,18 @@
 .table-pipelines *,
 .table-workflows *,
 .table-datasets *,
+.table-users *,
 .table-volumes * {
   font-size: var(--nl-font-size);
 }
 
 .table-pipelines .p-button,
 .table-workflows .p-button, 
-.table-workflows  .p-inline-message,
-.table-datasets .p-button, 
-.table-datasets  .p-inline-message {
+.table-workflows .p-inline-message,
+.table-datasets  .p-button, 
+.table-datasets  .p-inline-message,
+.table-users     .p-button, 
+.table-users     .p-inline-message {
     padding: 6px;
 }
 
@@ -226,24 +230,28 @@
 
 // search filter
 .table-workflows .p-inputtext,
-.table-datasets  .p-inputtext {
+.table-datasets  .p-inputtext,
+.table-users     .p-inputtext {
   height: 10px;
 }
 
 // header
 .table-workflows .p-datatable-header,
-.table-datasets  .p-datatable-header {
+.table-datasets  .p-datatable-header,
+.table-users     .p-datatable-header {
   padding: 0.5rem;
 }
 .table-workflows .p-sortable-column .p-sortable-column-icon,
-.table-datasets .p-sortable-column .p-sortable-column-icon {
+.table-datasets  .p-sortable-column .p-sortable-column-icon,
+.table-users     .p-sortable-column .p-sortable-column-icon {
   width: 10px;
   height: 10px;
 }
 
 // header: action buttons
 .table-workflows .p-datatable-header .p-button,
-.table-datasets .p-datatable-header .p-button {
+.table-datasets  .p-datatable-header .p-button,
+.table-users     .p-datatable-header .p-button {
   width: 30px;
   height: 30px;
   margin-right: 5px;
@@ -252,7 +260,8 @@
 
 // splitbutton/button
 .table-workflows .p-splitbutton-menubutton,
-.table-datasets  .p-splitbutton-menubutton {
+.table-datasets  .p-splitbutton-menubutton,
+.table-users     .p-splitbutton-menubutton {
   padding: 3px;
   width: 25px;
 }
@@ -293,21 +302,25 @@
 
 // paginator
 .table-workflows .p-paginator *,
-.table-datasets  .p-paginator * {
+.table-datasets  .p-paginator *,
+.table-users     .p-paginator * {
   height: 30px;
   line-height: 25px;
 }
 .table-workflows .p-paginator .p-dropdown-label,
-.table-datasets .p-paginator .p-dropdown-label {
+.table-datasets  .p-paginator .p-dropdown-label,
+.table-users     .p-paginator .p-dropdown-label {
   padding: 2px;
 }
 .table-workflows .p-paginator .p-dropdown-trigger,
-.table-datasets .p-paginator .p-dropdown-trigger {
+.table-datasets  .p-paginator .p-dropdown-trigger,
+.table-users     .p-paginator .p-dropdown-trigger {
   height: 30px;
   width: 30px;
 }
 .table-workflows .p-paginator .p-dropdown-trigger .p-icon,
-.table-datasets .p-paginator .p-dropdown-trigger .p-icon {
+.table-datasets  .p-paginator .p-dropdown-trigger .p-icon,
+.table-users     .p-paginator .p-dropdown-trigger .p-icon {
   height: 10px;
   width: 10px;
 }

@@ -134,12 +134,12 @@ const AuthProvider = ({ children }) => {
 
 
   /**
-   * "info" gets the user information.
+   * "get" gets the user information.
    * @param {String} username - The username.
    * @returns {Object|null} - If the indicated object is found, otherwise throw an error.
    * @throws {Error} - Throws an error if the request is not successful.
    */
-  const info = async (username) => {
+  const get = async (username) => {
     // retrieve token directly
     const token = sessionStorage.getItem('token');
     if (!token) return null;  
@@ -157,8 +157,8 @@ const AuthProvider = ({ children }) => {
         let error = `${response.status}:${response.statusText}`;
         throw new Error(`User info failed: ${error}`);
       }
-      const result = await response.json();
 
+      const result = await response.json();
       return result; // return response
 
     } catch (error) { // handle error
@@ -166,6 +166,113 @@ const AuthProvider = ({ children }) => {
       throw new Error(error.message);
     }
   };
+
+
+  /**
+   * "query" retrieves all users.
+   * @returns {Array|null} - An array of users if found, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  const query = async () => {
+    // retrieve token directly
+    const token = sessionStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        let error = `${response.status}:${response.statusText}`;
+        throw new Error(`Get users failed: ${error}`);
+      }
+
+      const result = await response.json();
+      return result; // array of users
+
+    } catch (error) {
+      console.error(error);
+      throw new Error(error.message);
+    }
+  };
+
+  
+  /**
+   * "edit" updates the information of a user.
+   * @param {String} username - The username to update.
+   * @param {Object} data - The fields to update in the user object.
+   * @returns {Object|null} - The updated user object if successful, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  const edit = async (username, data) => {
+    // retrieve token directly
+    const token = sessionStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/users/${username}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        let error = `${response.status}:${response.statusText}`;
+        throw new Error(`Edit user failed: ${error}`);
+      }
+
+      const result = await response.json();
+      return result; // return updated user object
+
+    } catch (error) {
+      console.error(error);
+      throw new Error(error.message);
+    }
+  };
+
+
+  /**
+   * "remove" deletes a user from the system.
+   * @param {String} username - The username to delete.
+   * @returns {Object|null} - A confirmation object if successful, otherwise throw an error.
+   * @throws {Error} - Throws an error if the request is not successful.
+   */
+  const remove = async (username) => {
+    // retrieve token directly
+    const token = sessionStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/users/${username}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        let error = `${response.status}:${response.statusText}`;
+        throw new Error(`Delete user failed: ${error}`);
+      }
+
+      // const result = await response.json();
+      // return result; // return confirmation or deleted user object
+
+    } catch (error) {
+      console.error(error);
+      throw new Error(error.message);
+    }
+  };
+
 
   /**
    * "logout" clears all values in session storage and removes the authentication variable.
@@ -176,8 +283,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    // <userServices.Provider value={{ auth, checkAuth, login, register, info, logout, error, success }}>
-    <userServices.Provider value={{ auth, checkAuth, login, register, info, logout }}>
+    <userServices.Provider value={{ auth, checkAuth, login, register, get, query, edit, remove, logout }}>
       {children}
     </userServices.Provider>
   );

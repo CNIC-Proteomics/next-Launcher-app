@@ -16,6 +16,7 @@ import { FilterMatchMode } from 'primereact/api';
 import { Dialog } from 'primereact/dialog';
 
 import { showInfo, showError, showWarning } from '../services/toastServices';
+import * as globalServices from '../services/globalServices';
 import { userServices } from '../services/userServices';
 import { datasetServices } from '../services/datasetServices';
 
@@ -38,30 +39,13 @@ const Datasets = ({ setDatasetForDialog  }) => {
 
   // Define header
   const columns = [
+    ...(auth.role === 'admin'? [{ field: 'author', header: 'Author' }] : []), // include only for admin
     { field: 'name', header: 'Name' },
 		{ field: 'description', header: 'Description' },
-    { field: 'author', header: 'Author' },
     { field: 'date_created', header: 'Date created' },
     { field: 'n_files', header: 'Num. files' },
     { field: 'action', header: 'Action' }
   ];
-
-
-  // Transform timestamp to formatted date and time string.
-  const timestampToDate = (timestamp) => {
-    // convert the timestamp to a Date object
-    const date = new Date(timestamp);
-    // get the day, month, and year from the Date object
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    // format the date as dd/mm/yyyy hh:mm:ss
-    const formattedDateTime = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;  
-    return formattedDateTime;
-  };
 
 
   // Declare states
@@ -86,7 +70,7 @@ const Datasets = ({ setDatasetForDialog  }) => {
           name,
           description,
           author,
-          'date_created': timestampToDate(date_created),
+          'date_created': globalServices.convertTimestampToDate(date_created),
           'n_files': n_files,
           'action': <ActionButton data={item} setDatasetForDialog={setDatasetForDialog} />
         });
