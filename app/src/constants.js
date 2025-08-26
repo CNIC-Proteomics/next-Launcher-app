@@ -21,7 +21,7 @@ export const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10Gb
 /* User constants */
 export const GUEST_USER = 'guest';
 export const GUEST_PWD = 'guest';
-export const ALLOWED_ROLES = ['guest','cnic','admin'];
+export const ALLOWED_ROLES = process.env.ALLOWED_ROLES || ['admin','guest','cnic'];
 
 /* Workflow severity level */
 export const STATUS_SEVERITY = {
