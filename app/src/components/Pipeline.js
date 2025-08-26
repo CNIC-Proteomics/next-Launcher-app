@@ -156,7 +156,10 @@ const Pipeline = () => {
 		if (allValid) {
 			let dataPOST = {
 				author: auth.username,
-				profiles: auth.role,
+				profiles: {
+					[auth.role]: null,
+					...schemaData.profiles
+				},
 				name: schemaData.title,
 				description: schemaData.description,
 				pipeline: schemaData.url,
