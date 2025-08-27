@@ -1,4 +1,24 @@
 ___
+## 0.1.6
+
+### Date 📅 *2025_08*
+
+### Changes in detail
+
+**rc1**
++ Replace the incorrect word 'lauch' with 'launch'.
++ Rename the env variable HOST_IP to HOST_NAME.
++ Displays the host name in the Workflow table.
+**rc2**
++ Created an interface to administer user profiles.
+**rc3**
++ Fixed a bug in the extension of the output archive.
+**rc4**
++ Provided the env variable with the allowed roles.
++ Created the profiles object with several pieces of information for the profiles. This includes the user role and profile info from the pipeline JSON file.
+
+
+___
 ## 0.1.5
 
 ### Date 📅 *2025_04*
