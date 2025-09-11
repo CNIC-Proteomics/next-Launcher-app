@@ -27,10 +27,6 @@
   font-weight: bolder;
 }
 
-.app-header-container .p-menuitem-content {
-  margin-right: 20px;
-}
-
 .app-header-container .p-menuitem, .app-header-container .p-menuitem, .app-header-container .p-menuitem-title {
   color: var(--nl-navbar-color);
   text-decoration: none;
@@ -44,7 +40,7 @@
   background: gray;
 }
 
-.menu-avatar {
+.menu-avatar * {
   font-size: var(--nl-font-size);
 }
 

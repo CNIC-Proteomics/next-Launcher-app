@@ -1,41 +1,28 @@
 /*
  * Import libraries
  */
-
-import React, {
-  useContext,
-  useRef
-} from 'react';
-import {
-  Link,
-  useHistory 
-} from 'react-router-dom';
+import React, { useContext, useRef } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 import { Menubar } from 'primereact/menubar';
 import { Avatar } from 'primereact/avatar';
-import { Menu } from 'primereact/menu';
+import { OverlayPanel } from 'primereact/overlaypanel';
 
-import {
-  APP_NAME,
-  APP_VERSION
-} from '../constants';
+import { APP_NAME, APP_VERSION } from '../constants';
 import { userServices } from '../services/userServices';
-
 
 /*
  * Components
  */
-
 const AppHeader = () => {
-
   // Declare variables
-  const history = useHistory ();
-  const menuAvatar = useRef(null);
+  const history = useHistory();
+  const op = useRef(null);
   const { auth, logout } = useContext(userServices);
 
   // Left menu
   const start = (
     <div className='flex align-items-center gap-2'>
-      <img alt='logo' src='/logo512.png' height='40' className='mr-2'></img>
+      <img alt='logo' src='/logo512.png' height='40' className='mr-2' />
       <a href='/' className='p-menuitem-title'>
         <span className='p-menuitem-text'>{APP_NAME}</span>
       </a>
@@ -44,50 +31,45 @@ const AppHeader = () => {
   );
 
   // Right menu
-  const avatarItems = auth ? [
-    {
-      label: (
-        <div>
-          <span className='font-normal'>Signed in as </span>{auth.username}
-        </div>
-      ),
-      items: [{
-        label: 'Profile',
-        icon: 'pi pi-fw pi-user',
-        command: () => history.push(`/users/${auth.username}/view`)
-      },{
-        label: 'Logout',
-        icon: 'pi pi-fw pi-sign-out',
-        command: () => {
-          logout();
-          history.push('/'); // navigate to main page after logout
-        }
-      }]
-    }
-  ] : [];
-
   const end = (
-    <ul className='p-menubar-root-list'>
+    <ul className='p-menubar-root-list flex align-items-center gap-3'>
       <li className='p-menuitem-content'>
         <Link to='/help' className='p-menuitem'>Help</Link>
       </li>
       {auth ? (
         <>
-        <Avatar
-          shape='circle'
-          icon='pi pi-user'
-          style={{ cursor: 'pointer', backgroundColor: 'gray', color: 'white' }}
-          onClick={(event) => menuAvatar.current.toggle(event)}
-        />
-        <Menu
-          className='menu-avatar'
-          model={avatarItems}
-          popup
-          ref={menuAvatar}
-        />
-      </>
+          <Avatar
+            shape='circle'
+            icon='pi pi-user'
+            style={{ cursor: 'pointer', backgroundColor: 'gray', color: 'white' }}
+            onClick={(e) => op.current && op.current.toggle(e)}
+          />
+          <OverlayPanel ref={op}>
+            <div className='menu-avatar flex flex-column gap-2 p-2 w-12rem'>
+              <div className='mb-2 text-sm text-600'>
+                Signed in as <strong>{auth.username}</strong>
+              </div>
+              <button
+                className='p-link flex align-items-center gap-2 w-full'
+                onClick={() => history.push(`/users/${auth.username}/view`)}
+              >
+                <i className='pi pi-user' /> Profile
+              </button>
+              <button
+                className='p-link flex align-items-center gap-2 w-full'
+                onClick={() => {
+                  logout();
+                  history.push('/');
+                  op.current?.hide(); // close panel after logout
+                }}
+              >
+                <i className='pi pi-sign-out' /> Logout
+              </button>
+            </div>
+          </OverlayPanel>
+        </>
       ) : (
-        <Link to='/login' icon='pi pi-sign-in' className='p-menuitem'>Login</Link>
+        <Link to='/login' className='p-menuitem'><i className='pi pi-sign-in'/> Login</Link>
       )}
     </ul>
   );
