@@ -22,6 +22,7 @@ ___
 + Fixing a bug in the AppHeader: Cannot read properties of undefined (reading 'hideOverlaysOnDocumentScrolling').
 **rc7**
 + Version format reduced from three segments to two (major.minor).
++ Upgraded version of nextflow pipelines.
 
 ___
 ## 0.1.5
