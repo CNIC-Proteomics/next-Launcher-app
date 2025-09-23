@@ -1,7 +1,7 @@
 ___
 ## 0.1.6
 
-### Date 📅 *2025_08*
+### Date 📅 *2025_09*
 
 ### Changes in detail
 
@@ -16,7 +16,10 @@ ___
 **rc4**
 + Provided the env variable with the allowed roles.
 + Created the profiles object with several pieces of information for the profiles. This includes the user role and profile info from the pipeline JSON file.
-
+**rc5**
++ Updated packages.
+**rc6**
++ Fixing a bug in the AppHeader: Cannot read properties of undefined (reading 'hideOverlaysOnDocumentScrolling').
 
 ___
 ## 0.1.5
