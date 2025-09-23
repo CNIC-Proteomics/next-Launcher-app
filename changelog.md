@@ -23,6 +23,8 @@ ___
 **rc7**
 + Version format reduced from three segments to two (major.minor).
 + Upgraded version of nextflow pipelines.
+**rc8**
++ Fixed a bug in the parameter name.
 
 ___
 ## 0.1.5
