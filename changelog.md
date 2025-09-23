@@ -1,5 +1,5 @@
 ___
-## 0.1.6
+## 1.6
 
 ### Date 📅 *2025_09*
 
@@ -20,6 +20,8 @@ ___
 + Updated packages.
 **rc6**
 + Fixing a bug in the AppHeader: Cannot read properties of undefined (reading 'hideOverlaysOnDocumentScrolling').
+**rc7**
++ Version format reduced from three segments to two (major.minor).
 
 ___
 ## 0.1.5
