@@ -225,16 +225,22 @@ export const DatasetExplorerDialog = ({ pName, property, postData, defaultValue 
  * Creates a section for the type parameter, string.
  */
 export const StringParameter = ({ pName, property, postData, defaultValue }) => {
-	const [value, setValue] = useState(defaultValue.value || '');
+	// Declare state
+	const [value, setValue] = useState(property.default || '');
 
-	// Initialize postData or Update (if already exist data) only once when the component mounts
+	// Initialize/Update postData only once when the component mounts
 	useEffect(() => {
+		// Update state when defaultValue changes
+		if (defaultValue) {
+			const newValue = defaultValue || '';
+			setValue(newValue);
+		}
 		postData[property.title] = {
 			'name': `--${pName}`,
 			'type': property.format,
 			'value': value, // initialize with default value
 		};
-	}, [pName, property, value, postData]);
+	}, [defaultValue, pName, property, value, postData]);
 
 	// Function to handle the change event
 	const onChange = (e) => {
@@ -273,16 +279,22 @@ export const StringParameter = ({ pName, property, postData, defaultValue }) => 
  * Creates a section for the type parameter, boolean.
  */
 export const BooleanParameter = ({ pName, property, postData, defaultValue }) => {
-	const [value, setValue] = useState(defaultValue.value === "true");
+	// Declare state
+	const [value, setValue] = useState(property.default || false);
 
-	// Initialize postData or Update (if already exist data) only once when the component mounts
+	// Initialize/Update postData only once when the component mounts
 	useEffect(() => {
+		// Update state when defaultValue changes
+		if (defaultValue) {
+			const newValue = defaultValue === "true"; // converting to boolean
+			setValue(newValue);
+		}
 		postData[property.title] = {
 			'name': `--${pName}`,
 			'type': property.format,
-			'value': String(value), // initialize with default value
+			'value': String(value),
 		};
-	}, [pName, property, value, postData]);
+	}, [defaultValue, pName, property, value, postData]);
 
 	// Function to handle the change event
 	const onChange = (e) => {
