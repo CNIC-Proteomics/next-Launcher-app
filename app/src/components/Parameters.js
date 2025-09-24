@@ -224,10 +224,10 @@ export const DatasetExplorerDialog = ({ pName, property, postData, defaultValue 
  * StringParameter
  * Creates a section for the type parameter, string.
  */
-export const StringParameter = ({ pName, property, postData }) => {
-	const [value, setValue] = useState(property.default || '');
+export const StringParameter = ({ pName, property, postData, defaultValue }) => {
+	const [value, setValue] = useState(defaultValue.value || '');
 
-	// Initialize postData only once when the component mounts
+	// Initialize postData or Update (if already exist data) only once when the component mounts
 	useEffect(() => {
 		postData[property.title] = {
 			'name': `--${pName}`,
@@ -272,10 +272,10 @@ export const StringParameter = ({ pName, property, postData }) => {
  * BooleanParameter
  * Creates a section for the type parameter, boolean.
  */
-export const BooleanParameter = ({ pName, property, postData }) => {
-	const [value, setValue] = useState(property.default || false);
+export const BooleanParameter = ({ pName, property, postData, defaultValue }) => {
+	const [value, setValue] = useState(defaultValue.value === "true");
 
-	// Initialize postData only once when the component mounts
+	// Initialize postData or Update (if already exist data) only once when the component mounts
 	useEffect(() => {
 		postData[property.title] = {
 			'name': `--${pName}`,
