@@ -35,6 +35,8 @@ ___
 
 **rc9**
 + Discarded the Nextflow pipelines from the web application. These pipelines should be in the next-Launcher/frontend folder of the repository.
+
+**rc10**
 + Fixed a bug: parameters were not filled correctly in the Re-Launch action.
 
 
