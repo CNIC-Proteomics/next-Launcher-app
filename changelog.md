@@ -9,22 +9,36 @@ ___
 + Replace the incorrect word 'lauch' with 'launch'.
 + Rename the env variable HOST_IP to HOST_NAME.
 + Displays the host name in the Workflow table.
+
 **rc2**
 + Created an interface to administer user profiles.
+
 **rc3**
 + Fixed a bug in the extension of the output archive.
+
 **rc4**
 + Provided the env variable with the allowed roles.
 + Created the profiles object with several pieces of information for the profiles. This includes the user role and profile info from the pipeline JSON file.
+
 **rc5**
 + Updated packages.
+
 **rc6**
 + Fixing a bug in the AppHeader: Cannot read properties of undefined (reading 'hideOverlaysOnDocumentScrolling').
+
 **rc7**
 + Version format reduced from three segments to two (major.minor).
 + Upgraded version of nextflow pipelines.
+
 **rc8**
 + Fixed a bug in the parameter name.
+
+**rc9**
++ Discarded the Nextflow pipelines from the web application. These pipelines should be in the next-Launcher/frontend folder of the repository.
++ Fixed a bug: parameters were not filled correctly in the Re-Launch action.
+
+
+
 
 ___
 ## 0.1.5
