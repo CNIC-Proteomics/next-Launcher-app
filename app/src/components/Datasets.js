@@ -15,6 +15,7 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import { FilterMatchMode } from 'primereact/api';
 import { Dialog } from 'primereact/dialog';
 
+import { BACKEND_HOST_NAME } from '../constants';
 import { showInfo, showError, showWarning } from '../services/toastServices';
 import * as globalServices from '../services/globalServices';
 import { userServices } from '../services/userServices';
@@ -39,6 +40,7 @@ const Datasets = ({ setDatasetForDialog  }) => {
 
   // Define header
   const columns = [
+    ...(auth.role === 'admin'? [{ field: 'host_name', header: 'Host' }] : []), // include only for admin
     ...(auth.role === 'admin'? [{ field: 'author', header: 'Author' }] : []), // include only for admin
     { field: 'name', header: 'Name' },
 		{ field: 'description', header: 'Description' },
@@ -64,8 +66,13 @@ const Datasets = ({ setDatasetForDialog  }) => {
     const transformData = (data) => {
       let result = [];
       data.forEach(item => {
-        const { _id, name, description, author, date_created, n_files } = item;
+        const { host_name, _id, name, description, author, date_created, n_files } = item;
+        // filter by BACKEND_HOST_NAME for non-admin users
+        if (auth?.role !== 'admin' && host_name !== BACKEND_HOST_NAME) {
+          return; // skip this dataset
+        }
         result.push({
+          host_name,
           _id,
           name,
           description,
@@ -88,7 +95,7 @@ const Datasets = ({ setDatasetForDialog  }) => {
       console.error('Error fetching datasets:', error);
       setLoading(false);
 		}
-  }, [setDatasetForDialog]);
+  }, [auth, setDatasetForDialog]);
 
 
   // This function will be passed down to refresh datasets after deletion
