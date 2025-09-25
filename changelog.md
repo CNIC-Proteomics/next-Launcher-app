@@ -39,6 +39,9 @@ ___
 **rc10**
 + Fixed a bug: parameters were not filled correctly in the Re-Launch action.
 
+**rc11**
++ Fixed a bug: displaying the dataset reports based on the host name.
+
 
 
 
